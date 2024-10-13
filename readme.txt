@@ -1,4 +1,4 @@
-Title: Clinical Autonomous AI Platform
+Title: Clinical Autonomous Agent Platform
 Team: Wai Kei LAI
 WorkID: cp630oc-project
 Statement: We claim that the enclosed project submission is our team work.  
