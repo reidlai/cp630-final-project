@@ -44,5 +44,8 @@
     "vite-plugin-tailwind-purgecss": "0.3.3",
     "vitest": "^2.0.0"
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@vincjo/datatables": "^1.14.10"
+  }
 }
