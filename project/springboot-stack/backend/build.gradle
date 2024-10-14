@@ -2,11 +2,17 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.3.4'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'com.bmuschko.docker-remote-api' version '9.3.2'
 }
 
 group = 'cp630oc'
 version = '0.0.1'
-sourceCompatibility = '17'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
 
 repositories {
     mavenCentral()
@@ -20,12 +26,22 @@ dependencies {
 
 bootJar {
     enabled = true
+    archiveBaseName = 'app'
+    archiveVersion = ''
 }
 
 jar {
-    enabled = true
+    enabled = false
 }
 
 springBoot {
     mainClass = 'cp630oc.Application'
+}
+
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+
+task buildDockerImage(type: DockerBuildImage) {
+    dependsOn bootJar
+    inputDir = file('.')
+    images.add('my-spring-boot-app:latest')
 }
