@@ -1,0 +1,41 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'base'
+}
+
+group = 'cp630oc.paymentrequeststore'
+version = '0.0.1'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api 'org.springframework:spring-context:5.3.10'
+    api 'org.springframework:spring-orm:5.3.10'
+    api 'org.springframework.data:spring-data-jpa:2.5.4'
+    api 'javax.persistence:javax.persistence-api:2.2'
+    
+    implementation 'org.hibernate:hibernate-core:5.4.32.Final'
+    runtimeOnly 'org.postgresql:postgresql:42.2.23'
+    
+    testImplementation 'org.springframework:spring-test:5.3.10'
+    testImplementation 'junit:junit:4.13.2'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        mavenJar(MavenPublication) {
+            from components.java
+        }
+    }
+}
