@@ -6,3 +6,8 @@ project/springboot-stack/backend/src/main/resources/static/favicon.png
 project/springboot-stack/backend/src/main/resources/static/index.html
 project/springboot-stack/backend/.gradle
 project/springboot-stack/backend/build
+project/.gradle
+project/payment-notification-service/backend/.gradle
+project/payment-notification-service/backend/build/libs
+project/payment-notification-service/backend/build/tmp
+project/payment-processing-service/backend/.gradle

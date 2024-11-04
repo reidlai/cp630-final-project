@@ -27,7 +27,7 @@ public class Transaction {
 
     @ManyToOne
     @JoinColumn(name = "merchant_id", nullable = false)
-    private Merchant merchant;
+    private string merchantId;
 
     @Column(name = "merchant_city", nullable = false)
     private String merchantCity;
@@ -94,12 +94,12 @@ public class Transaction {
         this.transactionType = transactionType;
     }
 
-    public Merchant getMerchant() {
-        return merchant;
+    public Merchant getMerchantId() {
+        return merchantId;
     }
 
-    public void setMerchant(Merchant merchant) {
-        this.merchant = merchant;
+    public void setMerchantId(string merchantId) {
+        this.merchantId = merchantId;
     }
 
     public String getMerchantCity() {
