@@ -1,0 +1,20 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+Person_Ext(customer, "Customer", "A customer who make payment using bank credit card")
+Person_Ext(merchant, "Merchant", "A merchant who receive payment from customer") 
+System_Ext(emailsystem, "Email System", "A system that used to send email notification")
+System_Ext(paymentgateway, "Payment Gateway", "An external payment gateway platform that processing payment request made by merchants and customers")
+
+System(paymentsolution, "Payment Solution", "A banking payment solution that process credit card payment request sent by payment gateway") 
+
+Rel(merchant, paymentgateway, "Make payment request")
+Rel(paymentgateway, paymentsolution, "Payment request")
+Rel(paymentsolution, paymentgateway, "Payment response callback")
+Rel(paymentgateway, merchant, "Payment response")
+Rel(paymentsolution, emailsystem, "Submit email notification", "SMTP")
+Rel(emailsystem, customer, "Send email notification", "SMTP")
+
+@enduml 

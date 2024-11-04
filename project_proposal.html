@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Wai Kei LAI" />
+  <meta name="dcterms.date" content="2024-10-16" />
+  <title>CP630 Project Proposal LightGBM for Credit Card Fraud Detection</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="project_proposal.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">CP630 Project Proposal<br>LightGBM for Credit Card
+Fraud Detection</h1>
+<p class="author">Wai Kei LAI</p>
+<p class="date">2024-10-16</p>
+</header>
+<h1 id="introduction">Introduction</h1>
+<p>In the period of advancement of technology and financial development,
+there has been a drastic increase in such activities as credit card
+payments, banking, online fund transactions and others as a result of
+the expansion of information technology. While this increase in
+financial activities has made capital and resource deployment to be more
+effective, it has also exactly led to the increase of fraudulent
+activities. Because of the arising complexity of the fraudulent
+transaction, its defenders fall behind the old solutions and seek for
+advanced means for counterfeiting and fraud deterrence.</p>
+<p>Option Consommateurs (2024) published a report which showed that
+around 30% of the Canadians remember themselves being a victim of the
+bank fraud. In fact, among those who felt the effects of bank fraud,
+almost 25% have taken some measure to defend themselves after the
+incident. This indicates that the aftermath of such kinds of fraud is
+not only loss of money but also loss of peace of mind, and victims
+become more vigilant on the security of their assets.</p>
+<h1 id="problem-solving-and-algorithms">Problem Solving and
+Algorithms</h1>
+<p>Over the past few years, ‘machine learning’ techniques have developed
+as one of the recent technologies for solving problems related to fraud
+detection in financial transactions. Before applying any model, it is
+understood that using machine learning requires a large volume of data
+which comprises past activities connected with fraud and instigates
+models to recognize them efficiently. Such models can also be designed
+using historical data on transactions and will keep getting better as
+additional data will continue becoming available.</p>
+<p>In response to this pressing issue, various machine learning
+techniques have been proposed for fraud detection. One such technique
+involves the use of LightGBM for Credit Card Fraud Detection (Huang,
+2020). This innovative approach to fraud detection could potentially be
+applied to our project, offering a promising solution to this pervasive
+problem with supporting research by Du et al. (2023).</p>
+<h1 id="proposed-system-design">Proposed System Design</h1>
+<p>The system is subdivided into several vital containers as
+follows:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Solution Component</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Machine Learning Model</td>
+<td>This is the pre-built open source machine learning model download
+from external source. This model was built based on LightGBM.</td>
+</tr>
+<tr>
+<td>Payment Processing Service</td>
+<td>This is public facing service that response for the processing of
+payments from merchants who made the Payment request.</td>
+</tr>
+<tr>
+<td>Payment Request Store</td>
+<td>This relational database store gets to store payment requests and
+payment request status.</td>
+</tr>
+<tr>
+<td>Machine Learning Inference Service</td>
+<td>This services mainly serve all fraud detection request against
+incoming payment request. It will get and use machine learning model to
+identify any possible frauds.</td>
+</tr>
+<tr>
+<td>Payment Notification Service</td>
+<td>This is outside system which sends email alerts to the Customer
+especially when a Transaction made is on hold for suspected fraudulent
+activity.</td>
+</tr>
+</tbody>
+</table>
+<h1 id="proposed-technical-stack">Proposed Technical Stack</h1>
+<p>The given technical stack utilizes commonly used or well known
+technologies and frameworks thus making it secure and easily adaptable
+to changes. The payment solution with fraud detection based on machine
+learning relies on the combination of Spring Boot as backend, Svelte as
+frontend, Mage.AI for MLOps, PostgreSQL for data storage, Docker for
+virtual technology and SVM as algorithm for dynamic fraud detection in
+payments.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Technology Component</th>
+<th>Technology</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Frontend UI + API</td>
+<td>Spring Boot and Svelte</td>
+<td><strong>Spring Boot</strong> is utilized to create REST APIs of
+various services such as Payment Processing Service, Model Inference
+Service and more. <strong>Svelte</strong> will be utilized on Dataset
+Request UI as well as on Payment Order UI.</td>
+</tr>
+<tr>
+<td>Database</td>
+<td>PostgreSQL</td>
+<td><strong>PostgreSQL</strong> is a complete, open source and high
+performance database management system. PostgreSQL can be used to
+develop the Payment Request Store.</td>
+</tr>
+<tr>
+<td>Containerization</td>
+<td>Docker and Docker Compose</td>
+<td><strong>Docker</strong> is a tool that can be used to deploy backend
+services, frontend applications and other components by isolating all
+the parts in a uniform environment. <strong>Docker Compose</strong> is
+useful in the management of multiple containers that have been defined
+with the help of Docker and running them so as to orchestrate the
+numerous parts of the architecture.</td>
+</tr>
+<tr>
+<td>Machine Learning Model</td>
+<td>ONNX</td>
+<td><strong>ONNX</strong> Is a standard interface to represent ML models
+in its most generic form and can be used for the deployment of the
+trained SVM model for inference in the Model Inference Service.</td>
+</tr>
+</tbody>
+</table>
+<h1 id="project-timeline">Project Timeline</h1>
+<p>The timeline takes into consideration the major steps mentioned in
+the project proposal such as dataset acquisition, MLOps workflow, AI
+model, Transaction and Customer Notification. It similarly takes into
+consideration the integration, testing and the deployment phases.</p>
+<ol class="incremental" type="1">
+<li><strong>Payment Processing and Fraud Detection (2 weeks: Nov 1 – Nov
+14)</strong></li>
+<li><strong>Notification Development and Email server (1 weeks: Nov 15 -
+Nov 21)</strong></li>
+<li><strong>Machine Learning Inference Service (2 weeks: Nov 22 – Dec
+5)</strong></li>
+<li><strong>Integration and testing (1 week: Dec 6 – Dec
+12)</strong></li>
+<li><strong>Documentation and deployment (1 week: Dec 13 – Dec
+16)</strong></li>
+</ol>
+<h1 id="reference">Reference</h1>
+<ol class="incremental" type="1">
+<li>Du, H. et al. (2023). AutoEncoder and LightGBM for Credit Card Fraud
+Detection Problems. <em>Symmetry</em> 2023, 15, 870. <a
+href="https://doi.org/10.3390/sym15040870">https://doi.org/10.3390/sym15040870</a></li>
+<li>Huang, K. (2020). An Optimized LightGBM Model for Fraud Detection.
+Journal of Physics: Conference Series, 1651, 012111, IOP Publishing. <a
+href="https://doi.org/10.1088/1742-6596/1651/1/012111">https://doi.org/10.1088/1742-6596/1651/1/012111</a></li>
+<li>Option Consommateurs. (April 17, 2024). 30% of Canadians victims of
+bank fraud. Accessed October 14, 2024. <a
+href="https://option-consommateurs.org/en/communique-barometre-2024/">https://option-consommateurs.org/en/communique-barometre-2024/</a></li>
+</ol>
+</body>
+</html>

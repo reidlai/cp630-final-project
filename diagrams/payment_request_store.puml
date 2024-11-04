@@ -1,0 +1,55 @@
+@startuml ' Define entities 
+entity "Customer" as customer { 
+  * id: integer
+  + firstName: string 
+  + lastName: string
+  + current_age: int 
+  + retirement_age: int
+  + birth_year: int
+  + birth_month: int
+  + gender: string 
+  + address: string
+  + latitude: float
+  + longitude: float
+  + per_capita_income: float
+  + yearly_income: float
+  + total_debt: float
+  + credit_score: int
+  + credit_card_count: int
+}
+
+entity "Card" as card { 
+  * id: integer 
+  + card_number: string 
+  + card_brand: string
+  + card_type: string
+  + card_expiration_date: date
+  + cvv_code: string 
+  + has_chip: boolean
+  + number_cards_issued: int
+  + credit_limit: float
+  + customer_id: integer 
+}
+
+entity "Transaction" as transaction { 
+  * id: integer
+  + transaction_datetime: datetime 
+  + card_id: string
+  + transaction_amount: float 
+  + transaction_type: string
+  + merchant_id: integer
+  + merchant_city: string
+  + merchant_state: string
+  + merchant_zip: string
+  + merchant_mcc_code: string
+  + currency_code: string 
+  + transaction_error: string 
+  + fraud_detected: boolean
+  + status: string
+}
+
+
+customer "1" -- "*" card: customer_id
+card "1" -- "*" transaction: card_id
+
+@enduml

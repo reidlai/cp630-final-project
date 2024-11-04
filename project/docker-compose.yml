@@ -1,24 +1,44 @@
 services:
-  appointment:
-    image: caap/appointment:0.0.1
-    container_name: appointment-service
-    ports:
-      - "8081:8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-    networks:
-      - caap-network
+  # springboot-app:
+  #   build:
+  #     context: ./dataset-downloader/backend
+  #     dockerfile: Dockerfile
+  #   container_name: springboot-app
+  #   ports:
+  #     - "8080:8080"
+  #   networks:
+  #     - public-network  
+  #   environment:
+  #     - MINIO_URL=http://minio:9000
+  #     - MINIO_ACCESS_KEY=minioadmin
+  #     - MINIO_SECRET_KEY=minioadmin
 
-  coverage-eligibility-request:
-    image: caap/coverage-eligibility-request:0.0.1
-    container_name: coverage-eligibility-request-service
+  minio:
+    image: minio/minio:latest
+    container_name: minio
     ports:
-      - "8082:8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
+      - "9000:9000"  # MinIO API
+      - "9001:9001"  # MinIO Console
     networks:
-      - caap-network
+      - public-network
+    volumes: 
+      - minio-data:/data
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address :9001
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    restart: always
 
 networks:
-  caap-network:
+  public-network:
     driver: bridge
+
+volumes:
+  minio-data:
+
