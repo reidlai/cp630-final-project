@@ -17,6 +17,9 @@ public class Customer {
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
+    @Column(nullable = false)
+    private String email;
+
     @Column(name = "current_age", nullable = false)
     private int currentAge;
 
@@ -29,7 +32,7 @@ public class Customer {
     @Column(name = "birth_month", nullable = false)
     private int birthMonth;
 
-    @Column(nullable = false)
+    @Column(name = "gender", nullable = false)
     private String gender;
 
     @Column(nullable = false)
@@ -84,6 +87,14 @@ public class Customer {
         this.lastName = lastName;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+    
     public int getCurrentAge() {
         return currentAge;
     }

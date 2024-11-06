@@ -1,11 +1,14 @@
+// plugins {
+//     id 'java-library'
+//     id 'maven-publish'
+//     id 'base'
+// }
+
 plugins {
+    id 'java'
     id 'java-library'
     id 'maven-publish'
-    id 'base'
 }
-
-group = 'cp630oc.paymentrequeststore'
-version = '0.0.1'
 
 repositories {
     mavenCentral()
@@ -30,8 +33,20 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
     }
-    withSourcesJar()
     withJavadocJar()
+}
+
+jar {
+    enabled = true
+    archiveBaseName = 'payment-request-store'
+    archiveVersion = project.version
+    destinationDirectory = file('build/libs') // Specify the output directory
+}
+
+tasks.named('javadocJar', Jar) {
+    archiveBaseName = 'payment-request-store' // Use the same base name as the main JAR
+    archiveVersion = project.version
+    destinationDirectory = file('build/libs')
 }
 
 publishing {

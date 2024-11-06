@@ -4,4 +4,11 @@ plugins {
 
 subprojects {
     apply plugin: 'base'
+    
+    group = 'cp630oc'
+    version = '0.0.1'
+
+    repositories {
+        mavenCentral()
+    }
 }

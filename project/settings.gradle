@@ -1,10 +1,11 @@
 rootProject.name = 'cp630oc'
 
 include 'payment-request-store'
-include 'payment-notification-service'
-include 'payment-processing-service'
+// include 'payment-notification-service:backend'
+// include 'payment-processing-service'
 
 // Specify the project directories
-project(':payment-request-store').projectDir = file('project/payment-request-store')
-project(':payment-notification-service').projectDir = file('project/payment-notification-service/backend')
-project(':payment-processing-service').projectDir = file('project/payment-processing-service/backend')
+// project(':payment-request-store').projectDir = file('payment-request-store')
+// project(':payment-notification-service').projectDir = file('payment-notification-service/backend')
+// project(':payment-processing-service').projectDir = file('payment-processing-service/backend')
+
