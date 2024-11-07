@@ -1,7 +1,7 @@
 rootProject.name = 'cp630oc'
 
 include 'payment-request-store'
-// include 'payment-notification-service:backend'
+include 'payment-notification-service:backend'
 // include 'payment-processing-service'
 
 // Specify the project directories

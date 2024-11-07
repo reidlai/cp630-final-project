@@ -1,0 +1,13 @@
+server:
+  port: "8080"
+
+spring:
+  mail:
+    host: localhost
+    port: 1025
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false

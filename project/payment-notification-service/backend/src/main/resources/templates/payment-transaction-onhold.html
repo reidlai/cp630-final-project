@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Payment Request On Hold</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+    <h1>Payment Request On Hold</h1>
+    <p th:text="'Dear ' + ${firstName}">Dear Customer</p>
+    <p>We have detected potential fraud in your payment request for the following transaction:</p>
+    <table>
+        <tr>
+            <td>Transaction ID:</td>
+            <td th:text="${transactionId}">12345</td>
+        </tr>
+        <tr>
+            <td>Amount:</td>
+            <td th:text="${transactionAmount}">$100.00</td>
+        </tr>
+        <tr>
+            <td>Merchant:</td>
+            <td th:text="${merchantName}">Acme Inc.</td>
+        </tr>
+        <tr>
+            <td>Date:</td>
+            <td th:text="${#dates.format(transactionDatetime, 'yyyy-MM-dd HH:mm:ss')}">2023-05-01 10:30:00</td>
+        </tr>
+    </table>
+    <p>Your payment request is currently on hold. Please call our 24-hour customer support for assistance:</p>
+    <p><strong>Customer Support:</strong> 1-800-123-4567</p>
+    <p>We apologize for any inconvenience this may cause and appreciate your understanding.</p>
+    <p>Thank you for your business!</p>
+    <p>Best regards,<br/>
+        Payment Solution Team
+    </p>
+</body>
+</html>

@@ -13,3 +13,4 @@ project/payment-notification-service/backend/build/tmp
 project/payment-processing-service/backend/.gradle
 project/payment-request-store/.gradle
 project/payment-request-store/build
+project/payment-notification-service/backend/build

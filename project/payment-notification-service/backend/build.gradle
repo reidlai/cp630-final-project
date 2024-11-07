@@ -1,0 +1,57 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.5'
+    id 'io.spring.dependency-management' version '1.1.0'
+    id 'com.bmuschko.docker-remote-api' version '7.1.0'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':payment-request-store')
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.thymeleaf:thymeleaf-spring5:3.0.12.RELEASE'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'com.sun.mail:jakarta.mail:2.0.1'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+bootJar {
+    enabled = true
+    archiveBaseName = 'app'
+    archiveVersion = ''
+}
+
+jar {
+    enabled = false
+}
+
+springBoot {
+    mainClass = 'cp630oc.notification.Application'
+}
+
+// import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+
+// task buildDockerImage(type: DockerBuildImage) {
+//     dependsOn bootJar
+//     inputDir = file('.')
+//     images.add('cp630oc-payment-notification-service:latest')
+// }
+
+// tasks.named('build') {
+//     dependsOn buildDockerImage
+// }
