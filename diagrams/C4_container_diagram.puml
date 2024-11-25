@@ -9,7 +9,10 @@ System_Ext(emailsystem, "Email System", "A system that used to send email notifi
 System_Ext(paymentgateway, "Payment Gateway", "An external payment gateway platform that processing payment request made by merchants and customers")
 
 System_Boundary(paymentsolution, "Payment Solution", "A banking payment solution that process credit card payment request sent by payment gateway") {
+    Person(ai_engineer, "AI Engineer", "An engineer who has experience to build machine learning model")
     Person(security_officer, "Security Officer", "An officer who has experience to secure the system") 
+    Container(data_loading, "Data Loading", "A service that used to load data from external source")
+    Container(ml_pipeline, "Machine Learning Pipeline", "A pipeline that used to train and deploy machine learning model")
     ContainerDb(ml_model, "Machine Learning Model", "A machine learning model that used to detect fraud")
     ContainerQueue(message_bus, "Message Bus", "A message bus that used to send message between services")
     Container(model_inference_service, "Model Inference Service", "A service that used to detect fraud")
@@ -19,28 +22,34 @@ System_Boundary(paymentsolution, "Payment Solution", "A banking payment solution
     Container(payment_request_portal, "Payment Request Portal", "A UI that used to manage payment request")
 }
 
-Rel(merchant, paymentgateway, "Make payment request")
+' ML Model Training
+Rel(ai_engineer, data_loading, "Build master data")
+Rel(data_loading, payment_request_store, "Load master data")
+Rel(payment_request_store, ml_pipeline, "Load master data")
+Rel(ai_engineer, ml_pipeline, "Build model")
+Rel(ml_pipeline, payment_request_store, "Feature mapping")
+Rel(ml_pipeline, ml_model, "Create/Update model")
 
+' Payment Processing
+Rel(merchant, paymentgateway, "Make payment request")
 Rel(paymentgateway, payment_processing_service, "Payment request")
 Rel(payment_processing_service, paymentgateway, "Payment response callback")
-
 Rel(payment_processing_service, payment_request_store, "Persist payment request")
-Rel(payment_processing_service, message_bus, "Produce fraud detection request")
 
+' Fraud Detection Request
+Rel(payment_processing_service, message_bus, "Produce fraud detection request")
 Rel(message_bus, model_inference_service, "Listen fraud detection request")
 Rel(ml_model, model_inference_service, "Load Model")
-
 Rel(model_inference_service, payment_request_store, "Update fraud detection result")
 Rel(model_inference_service, payment_notification_service, "Notify fraud detection result if fraud detected")
 Rel(model_inference_service, message_bus, "Produce fraud detection result")
 
+' Notification
 Rel(payment_notification_service, emailsystem, "Send email")
 Rel(payment_notification_service, security_officer, "Notify potential fraud")
 Rel(security_officer, payment_request_portal, "Review payment request")
 Rel(payment_request_portal, payment_processing_service, "Update payment request status")
-
 Rel(emailsystem, customer, "Notify payment status")
 Rel(customer, security_officer, "Enquire payment status")
-
 
 @enduml

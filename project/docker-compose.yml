@@ -1,18 +1,4 @@
 services:
-  # springboot-app:
-  #   build:
-  #     context: ./dataset-downloader/backend
-  #     dockerfile: Dockerfile
-  #   container_name: springboot-app
-  #   ports:
-  #     - "8080:8080"
-  #   networks:
-  #     - public-network  
-  #   environment:
-  #     - MINIO_URL=http://minio:9000
-  #     - MINIO_ACCESS_KEY=minioadmin
-  #     - MINIO_SECRET_KEY=minioadmin
-
   minio:
     image: minio/minio:latest
     container_name: minio
@@ -33,7 +19,38 @@ services:
     ports:
       - "8025:8025"
       - "1025:1025"
+    networks: 
+      - public-network
     restart: always
+
+  db: 
+    image: postgres:13
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    networks: 
+      - public-network
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+
+  payment-notification-backend-service:
+    build:
+      context: ./payment-notification-service/backend
+      dockerfile: Dockerfile
+    container_name: payment-notification-backend-service
+    ports:
+      - "8081:8080"
+    networks:
+      - public-network
+    environment:
+      SPRING_DATASOURCE_USERNAME: "postgres"
+      SPRING_DATASOURCE_PASSWORD: "postgres"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/postgres"
+      SPRING_PROFILES_ACTIVE: "dev"
+    depends_on:
+      - db
 
 networks:
   public-network:
@@ -41,4 +58,3 @@ networks:
 
 volumes:
   minio-data:
-
