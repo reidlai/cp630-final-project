@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.thymeleaf.context.Context;
-import org.thymeleaf.spring5.SpringTemplateEngine;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 import cp630oc.paymentrequeststore.entity.Transaction;
 import cp630oc.paymentrequeststore.entity.Card;
 import cp630oc.paymentrequeststore.entity.Customer;

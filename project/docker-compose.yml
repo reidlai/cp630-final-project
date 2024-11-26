@@ -34,6 +34,9 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes: 
+      - pg-data:/var/lib/postgresql/data/pgdata 
 
   payment-notification-backend-service:
     build:
@@ -49,12 +52,28 @@ services:
       SPRING_DATASOURCE_PASSWORD: "postgres"
       SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/postgres"
       SPRING_PROFILES_ACTIVE: "dev"
+      SPRING_MAIL_HOST: "mailhog"
+      SPRING_MAIL_PORT: "1025"
     depends_on:
       - db
-
+  mageai:
+    build:
+      context: ./data-preparation
+      dockerfile: Dockerfile
+    container_name: cp630-mageai
+    ports: 
+      - "6789:6789"
+    networks:
+      - public-network
+    volumes:
+      - ./data-preparation:/home/src
+      - ./fraud-detection-onnx/hz-onnx-debian:/home/src/default/hz-onnx-debian:ro
+    command: ["/app/run_app.sh", "mage", "start", "default"]
+    
 networks:
   public-network:
     driver: bridge
 
 volumes:
   minio-data:
+  pg-data:

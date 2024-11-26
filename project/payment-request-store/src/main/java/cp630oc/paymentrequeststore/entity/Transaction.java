@@ -1,6 +1,6 @@
 package cp630oc.paymentrequeststore.entity;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Date;
 
 /**
@@ -28,8 +28,7 @@ public class Transaction {
     @Column(name = "transaction_type", nullable = false)
     private String transactionType;
 
-    @ManyToOne
-    @JoinColumn(name = "merchant_id", nullable = false)
+    @Column(name = "merchant_id", nullable = false)
     private String merchantId;
 
     @Column(name = "merchant_city", nullable = false)
