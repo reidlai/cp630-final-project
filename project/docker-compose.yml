@@ -68,7 +68,6 @@ services:
     volumes:
       - ./data-preparation:/home/src
       - ./fraud-detection-onnx/hz-onnx-debian:/home/src/default/hz-onnx-debian:ro
-    command: ["/app/run_app.sh", "mage", "start", "default"]
     
 networks:
   public-network:

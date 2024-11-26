@@ -1,14 +1,3 @@
-# Use a multi-stage build to create a minimal image
-# Stage 1: Build the application
-FROM openjdk:17-jdk-alpine AS builder
-
-# Set the working directory in the container
-WORKDIR /app
-
-# Copy the build output to the container
-COPY build/libs/app.jar app.jar
-
-# Stage 2: Create the final image using OpenJDK 21
 FROM openjdk:17-jdk-alpine
 
 # Install PostgreSQL client
@@ -17,13 +6,10 @@ RUN apk add --no-cache postgresql-client
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the JAR file from the builder stage
-COPY --from=builder /app/app.jar app.jar
-COPY wait-for-it.sh wait-for-it.sh
-RUN chmod +x wait-for-it.sh
+# Copy the build output to the container
+COPY ./build/libs/app.jar app.jar
 
 # Expose the port the app runs on
 EXPOSE 8080
 
-# Run the jar file
-ENTRYPOINT ["./wait-for-it.sh", "db", "java", "-jar", "app.jar"]
+CMD ["java", "-jar", "app.jar"]
