@@ -52,19 +52,7 @@ notification_config:
     webhook_url: "{{ env_var('MAGE_SLACK_WEBHOOK_URL') }}"
   teams_config:
     webhook_url: "{{ env_var('MAGE_TEAMS_WEBHOOK_URL') }}"
-project_uuid: 50960814fea34e619f322976a110e8ed
+project_uuid: default
 features:
-  command_center: true
-  add_new_block_v2: true
-  dbt_v2: true
-  global_hooks: true
-  notebook_block_output_split_view: true
   polars: true
-  automatic_kernel_cleanup: true
-  custom_design: true
-  compute_management: false
-  data_integration_in_batch_pipeline: true
-  interactions: true
-  display_local_timezone: true
-  operation_history: true
 pipelines:

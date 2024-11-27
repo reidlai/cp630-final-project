@@ -3,8 +3,8 @@ if 'data_loader' not in globals():
     from mage_ai.data_preparation.decorators import data_loader
 if 'test' not in globals():
     from mage_ai.data_preparation.decorators import test
-
-import polars as pl
+if 'pd' not in globals():
+    import pandas as pd
 
 @data_loader
 def load_data_from_file(path, *args, **kwargs):
@@ -20,7 +20,7 @@ def load_data_from_file(path, *args, **kwargs):
 
     customer_datafile_path = f"{path}/sd254_users.csv"
     
-    return pl.read_csv(customer_datafile_path)
+    return pd.read_csv(customer_datafile_path)
 
 @test
 def test_output(output, *args) -> None:
