@@ -7,7 +7,7 @@ blocks:
   downstream_blocks:
   - customer_data_csv
   - card_data_csv
-  - transaction_data_csv
+  - harmonic_treasure
   executor_config: null
   executor_type: local_python
   has_callback: false
@@ -43,7 +43,8 @@ blocks:
   configuration:
     file_source:
       path: data_loaders/card_data_csv.py
-  downstream_blocks: []
+  downstream_blocks:
+  - card_transformer
   executor_config: null
   executor_type: local_python
   has_callback: false
@@ -60,25 +61,9 @@ blocks:
   color: null
   configuration:
     file_source:
-      path: data_loaders/transaction_data_csv.py
-  downstream_blocks: []
-  executor_config: null
-  executor_type: local_python
-  has_callback: false
-  language: python
-  name: transaction_data_csv
-  retry_config: null
-  status: executed
-  timeout: null
-  type: data_loader
-  upstream_blocks:
-  - kaggle_dataset
-  uuid: transaction_data_csv
-- all_upstream_blocks_executed: true
-  color: null
-  configuration: {}
+      path: transformers/customer_transformer.py
   downstream_blocks:
-  - customer_db_table
+  - customer_dbtable_exporter
   executor_config: null
   executor_type: local_python
   has_callback: false
@@ -93,25 +78,121 @@ blocks:
   uuid: customer_transformer
 - all_upstream_blocks_executed: true
   color: null
+  configuration:
+    file_source:
+      path: transformers/card_transformer.py
+  downstream_blocks:
+  - card_dbtable_exporter
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: card_transformer
+  retry_config: null
+  status: updated
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - card_data_csv
+  uuid: card_transformer
+- all_upstream_blocks_executed: true
+  color: null
+  configuration:
+    file_source:
+      path: data_exporters/customer_dbtable_exporter.py
+  downstream_blocks: []
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: customer_dbtable_exporter
+  retry_config: null
+  status: executed
+  timeout: null
+  type: data_exporter
+  upstream_blocks:
+  - customer_transformer
+  uuid: customer_dbtable_exporter
+- all_upstream_blocks_executed: false
+  color: null
+  configuration:
+    file_source:
+      path: data_exporters/card_dbtable_exporter.py
+  downstream_blocks: []
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: card_dbtable_exporter
+  retry_config: null
+  status: executed
+  timeout: null
+  type: data_exporter
+  upstream_blocks:
+  - card_transformer
+  uuid: card_dbtable_exporter
+- all_upstream_blocks_executed: true
+  color: null
+  configuration:
+    data_provider: postgres
+    data_provider_profile: db
+    disable_output_preview: true
+    export_write_policy: append
+  downstream_blocks:
+  - transaction_transformer
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: harmonic treasure
+  retry_config: {}
+  status: executed
+  timeout: null
+  type: data_loader
+  upstream_blocks:
+  - kaggle_dataset
+  uuid: harmonic_treasure
+- all_upstream_blocks_executed: true
+  color: null
+  configuration:
+    disable_output_preview: true
+    file_source:
+      path: transformers/transaction_transformer.py
+  downstream_blocks:
+  - cosmic_elixir
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: transaction_transformer
+  retry_config: {}
+  status: updated
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - harmonic_treasure
+  uuid: transaction_transformer
+- all_upstream_blocks_executed: false
+  color: null
   configuration: {}
   downstream_blocks: []
   executor_config: null
   executor_type: local_python
   has_callback: false
   language: python
-  name: customer_db_table
+  name: cosmic elixir
   retry_config: null
-  status: updated
+  status: not_executed
   timeout: null
   type: data_exporter
   upstream_blocks:
-  - customer_transformer
-  uuid: customer_db_table
+  - transaction_transformer
+  uuid: cosmic_elixir
 cache_block_output_in_memory: false
 callbacks: []
 concurrency_config: {}
 conditionals: []
-created_at: '2024-11-26 21:24:29.925679+00:00'
+created_at: '2024-11-28 00:56:35.831114+00:00'
 data_integration: null
 description: null
 executor_config: {}

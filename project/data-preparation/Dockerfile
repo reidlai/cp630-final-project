@@ -18,6 +18,7 @@ RUN ls -l
 
 RUN pip install --upgrade pip
 RUN pip install kagglehub
+# RUN pip install polars --upgrade
 
 # Start Mage AI development server
 CMD ["/app/run_app.sh"]

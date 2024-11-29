@@ -6,18 +6,18 @@ if 'pd' not in globals():
     import pandas as pd
 
 @transformer
-def transform(customer_df: pd, *args, **kwargs):
+def transform(customer_df: pd.DataFrame, *args, **kwargs):
 
     # Split Person into first_name and last_name
     split_person = customer_df['Person'].str.split(' ', n=1, expand=True)
-
+    customer_df['id'] = customer_df.index
     customer_df['first_name'] = split_person[0]
     customer_df['last_name'] = split_person[1]
   
     
     # Concat Apartment and Address if Apartment is not None 
     customer_df['address'] = customer_df.apply(
-        lambda row: f"{row['Apartment']} {row['Address']}, {row['City']}, {row['State']} {row['Zipcode']}" if pd.notna(row['Apartment']) else row['Address'],
+        lambda row: f"Unit {row['Apartment']}, {row['Address']}, {row['City']}, {row['State']} {row['Zipcode']}" if pd.notna(row['Apartment']) else f"{row['Address']}, {row['City']}, {row['State']} {row['Zipcode']}",
         axis=1
     )
         
@@ -38,7 +38,8 @@ def transform(customer_df: pd, *args, **kwargs):
         "State", 
         "Zipcode", 
         "Per Capita Income - Zipcode", 
-        "Yearly Income - Person"
+        "Yearly Income - Person",
+        "Total Debt"
     ])
     
     # Rename columns
@@ -53,8 +54,25 @@ def transform(customer_df: pd, *args, **kwargs):
         "FICO Score": "credit_score",
         "Num Credit Cards": "credit_card_count"
     })
-    
-    
+
+    # 1. Convert any float64 columns that should be numeric
+    numeric_columns = ['latitude', 'longitude']
+    for col in numeric_columns:
+        customer_df[col] = customer_df[col].astype(float)
+
+    # 2. Ensure string columns are actually strings
+    string_columns = ['gender', 'first_name', 'last_name', 'address', 'email']
+    for col in string_columns:
+        customer_df[col] = customer_df[col].astype(str)
+
+    # 3. Ensure integer columns are actually integers
+    int_columns = ['current_age', 'retirement_age', 'birth_year', 'birth_month', 'credit_score', 'credit_card_count']
+    for col in int_columns:
+        customer_df[col] = pd.to_numeric(customer_df[col], errors='coerce').astype('Int64')
+
+    # 4. Reset the index to ensure it's clean
+    customer_df = customer_df.reset_index(drop=True)
+
     return customer_df
 
 

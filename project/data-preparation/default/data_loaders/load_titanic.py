@@ -1,16 +1,16 @@
 import io
 import pandas as pd
 import requests
-from pandas import DataFrame
 
 if 'data_loader' not in globals():
     from mage_ai.data_preparation.decorators import data_loader
 if 'test' not in globals():
     from mage_ai.data_preparation.decorators import test
-
+if 'pd' not in globals():
+    import pandas as pd
 
 @data_loader
-def load_data_from_api(**kwargs) -> DataFrame:
+def load_data_from_api(**kwargs) -> pd.DataFrame:
     """
     Template for loading data from API
     """

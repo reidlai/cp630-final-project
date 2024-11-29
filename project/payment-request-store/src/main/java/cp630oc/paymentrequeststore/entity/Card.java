@@ -28,6 +28,9 @@ public class Card {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "card_index", nullable = false)
+    private int cardIndex;
+
     @Column(name = "card_number", nullable = false)
     private String cardNumber;
 
@@ -47,11 +50,21 @@ public class Card {
     @Column(name = "has_chip", nullable = false)
     private boolean hasChip;
 
+    @Column(name = "credit_limit", nullable = false)
+    private float creditLimit;
+
     @Column(name = "number_cards_issued", nullable = false)
     private int numberCardsIssued;
 
-    @Column(name = "credit_limit", nullable = false)
-    private float creditLimit;
+    @Column(name = "pin_last_changed_year", nullable = false)
+    private int pinLastChangedYear;
+
+    @Column(name = "account_open_date", nullable = false)
+    @Temporal(TemporalType.DATE)
+    private Date accountOpenDate;
+
+    @Column(name = "card_on_dark_web", nullable = false)
+    private boolean cardOnDarkWeb;
 
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
@@ -77,19 +90,19 @@ public class Card {
     }
 
     /**
-     * Get the card number
-     * @return card number
+     * Get the card index
+     * @return card index
      */
-    public String getCardNumber() {
-        return cardNumber;
+    public int getCardIndex() {
+        return cardIndex;
     }
 
     /**
-     * Set the card number
-     * @param cardNumber card number
+     * Set the card index
+     * @param cardIndex card index
      */
-    public void setCardNumber(String cardNumber) {
-        this.cardNumber = cardNumber;
+    public void setCardIndex(int cardIndex) {
+        this.cardIndex = cardIndex;
     }
 
     /**
@@ -125,19 +138,19 @@ public class Card {
     }
 
     /**
-     * Get the card expiration date
-     * @return card expiration date
+     * Get the card number
+     * @return card number
      */
-    public Date getCardExpirationDate() {
-        return cardExpirationDate;
+    public String getCardNumber() {
+        return cardNumber;
     }
 
     /**
-     * Set the card expiration date
-     * @param cardExpirationDate card expiration date
+     * Set the card number
+     * @param cardNumber card number
      */
-    public void setCardExpirationDate(Date cardExpirationDate) {
-        this.cardExpirationDate = cardExpirationDate;
+    public void setCardNumber(String cardNumber) {
+        this.cardNumber = cardNumber;
     }
 
     /**
@@ -157,10 +170,75 @@ public class Card {
     }
 
     /**
+     * Get the number of card issued
+     * @return number of card issued
+     */
+
+    public int getNumberCardsIssued() {
+        return numberCardsIssued;  
+    }
+
+    /**
+     * Set the card issued
+     * @param numberCardsIssued number of card issued
+     */
+    public void setNumberCardsIssued(int numberCardsIssued) {
+        this.numberCardsIssued = numberCardsIssued;
+    }
+
+    /**
+     * Get the pin last changed year
+     * @return pin last changed year
+     */
+    public int getPinLastChangedYear() {
+        return pinLastChangedYear;
+    }
+
+    /**
+     * Set the pin last changed year
+     * @param pinLastChangedYear pin last changed year
+     */
+    public void setPinLastChangedYear(int pinLastChangedYear) {
+        this.pinLastChangedYear = pinLastChangedYear;
+    }
+
+    /**
+     * Get the card expiration date
+     * @return card expiration date
+     */
+    public Date getCardExpirationDate() {
+        return cardExpirationDate;
+    }
+
+    /**
+     * Set the card expiration date
+     * @param cardExpirationDate card expiration date
+     */
+    public void setCardExpirationDate(Date cardExpirationDate) {
+        this.cardExpirationDate = cardExpirationDate;
+    }
+
+    /**
+     * Get the account open date
+     * @return account open date
+     */
+    public Date getAccountOpenDate() {
+        return accountOpenDate;
+    }
+
+    /**
+     * Set the account open date
+     * @param accountOpenDate account open date
+     */
+    public void setAccountOpenDate(Date accountOpenDate) {
+        this.accountOpenDate = accountOpenDate;
+    }
+
+    /**
      * Check if the card has a chip
      * @return true if the card has a chip, false otherwise
      */
-    public boolean isHasChip() {
+    public boolean getHasChip() {
         return hasChip;
     }
 
@@ -173,19 +251,19 @@ public class Card {
     }
 
     /**
-     * Get the number of cards issued
-     * @return number of cards issued
+     * Check if the card is on the dark web
+     * @return true if the card is on the dark web, false otherwise
      */
-    public int getNumberCardsIssued() {
-        return numberCardsIssued;
+    public boolean getCardOnDarkWeb() {
+        return cardOnDarkWeb;
     }
 
     /**
-     * Set the number of cards issued
-     * @param numberCardsIssued number of cards issued
+     * Set if the card is on the dark web
+     * @param cardOnDarkWeb true if the card is on the dark web, false otherwise
      */
-    public void setNumberCardsIssued(int numberCardsIssued) {
-        this.numberCardsIssued = numberCardsIssued;
+    public void setCardOnDarkWeb(boolean cardOnDarkWeb) {
+        this.cardOnDarkWeb = cardOnDarkWeb;
     }
 
     /**
