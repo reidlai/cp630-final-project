@@ -1,18 +1,18 @@
 services:
-  minio:
-    image: minio/minio:latest
-    container_name: minio
-    ports:
-      - "9000:9000"  # MinIO API
-      - "9001:9001"  # MinIO Console
-    networks:
-      - public-network
-    volumes: 
-      - minio-data:/data
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    command: server /data --console-address :9001
+  # minio:
+  #   image: minio/minio:latest
+  #   container_name: minio
+  #   ports:
+  #     - "9000:9000"  # MinIO API
+  #     - "9001:9001"  # MinIO Console
+  #   networks:
+  #     - public-network
+  #   volumes: 
+  #     - minio-data:/data
+  #   environment:
+  #     MINIO_ROOT_USER: minioadmin
+  #     MINIO_ROOT_PASSWORD: minioadmin
+  #   command: server /data --console-address :9001
 
   mailhog:
     image: mailhog/mailhog
@@ -67,7 +67,14 @@ services:
       - public-network
     volumes:
       - ./data-preparation/default:/home/src/default
-      - mageai-data:/home/src/mage_data
+      - mageai-data:/home/src/mage_dat
+    environment:
+      POSTGRES_HOST: "db"
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "postgres"
+      POSTGRES_SCHEMA: "public"
     
 networks:
   public-network:

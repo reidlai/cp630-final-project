@@ -31,28 +31,25 @@ public class Transaction {
     @Column(name = "merchant_id", nullable = false)
     private String merchantId;
 
-    @Column(name = "merchant_city", nullable = false)
+    @Column(name = "merchant_city", nullable = true)
     private String merchantCity;
 
-    @Column(name = "merchant_state", nullable = false)
+    @Column(name = "merchant_state", nullable = true)
     private String merchantState;
 
-    @Column(name = "merchant_zip", nullable = false)
+    @Column(name = "merchant_zip", nullable = true)
     private String merchantZip;
 
-    @Column(name = "merchant_mcc_code", nullable = false)
+    @Column(name = "merchant_mcc_code", nullable = true)
     private String merchantMccCode;
 
-    @Column(name = "currency_code", nullable = false)
-    private String currencyCode;
-
-    @Column(name = "transaction_error")
+    @Column(name = "transaction_error", nullable = true)
     private String transactionError;
 
-    @Column(name = "fraud_detected", nullable = false)
+    @Column(name = "fraud_detected", nullable = true)
     private boolean fraudDetected;
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "transaction_state", nullable = true)
     private String status;
 
     /**
@@ -213,22 +210,6 @@ public class Transaction {
      */
     public void setMerchantMccCode(String merchantMccCode) {
         this.merchantMccCode = merchantMccCode;
-    }
-
-    /**
-     * Get the currency code.
-     * @return the currency code
-     */
-    public String getCurrencyCode() {
-        return currencyCode;
-    }
-
-    /**
-     * Set the currency code.
-     * @param currencyCode the currency code
-     */
-    public void setCurrencyCode(String currencyCode) {
-        this.currencyCode = currencyCode;
     }
 
     /**

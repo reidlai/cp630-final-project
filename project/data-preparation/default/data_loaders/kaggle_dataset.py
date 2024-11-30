@@ -4,6 +4,8 @@ if 'test' not in globals():
     from mage_ai.data_preparation.decorators import test
 if 'kagglehub' not in globals():
     import kagglehub
+if 'set_global_variable' not in globals():
+    from mage_ai.data_preparation.variable_manager import set_global_variable
 
 @data_loader
 def load_data(*args, **kwargs):
@@ -14,9 +16,8 @@ def load_data(*args, **kwargs):
         Anything (e.g. data frame, dictionary, array, int, str, etc.)
     """
     # Specify your data loading logic here
-    path = kagglehub.dataset_download("ealtman2019/credit-card-transactions")
-    return path
-
+    set_global_variable("data_preparation_pipeline", "file_path", kagglehub.dataset_download("ealtman2019/credit-card-transactions"))
+    return {}
 
 @test
 def test_output(output, *args) -> None:

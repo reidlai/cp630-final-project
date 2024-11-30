@@ -1,12 +1,12 @@
 version: 0.1.1
 db:
   POSTGRES_CONNECT_TIMEOUT: 10
-  POSTGRES_DBNAME: postgres
-  POSTGRES_SCHEMA: public # Optional
-  POSTGRES_USER: postgres
-  POSTGRES_PASSWORD: postgres
-  POSTGRES_HOST: db
-  POSTGRES_PORT: 5432
+  POSTGRES_DBNAME: "{{ env_var('POSTGRES_DB') }}"
+  POSTGRES_SCHEMA: "{{ env_var('POSTGRES_SCHEMA') }}"
+  POSTGRES_USER: "{{ env_var('POSTGRES_USER') }}"
+  POSTGRES_PASSWORD: "{{ env_var('POSTGRES_PASSWORD') }}"
+  POSTGRES_HOST: "{{ env_var('POSTGRES_HOST') }}"
+  POSTGRES_PORT: "{{ env_var('POSTGRES_PORT') }}"
 # default:
 #   # Default profile created for data IO access.
 #   # Add your credentials for the source you use, and delete the rest.

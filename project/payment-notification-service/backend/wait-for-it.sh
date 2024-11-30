@@ -1,11 +1,11 @@
 #!/bin/sh
 set -e
 
-host="$1"
-shift
+host="${POSTGRES_HOST:-localhost}"
+port="${POSTGRES_PORT:-5432}"
 cmd="$@"
 
-until pg_isready -h "$host" -p 5432; do
+until pg_isready -h "$host" -p $port; do
   >&2 echo "Postgres is unavailable - sleeping"
   sleep 1
 done
