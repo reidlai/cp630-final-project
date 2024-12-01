@@ -7,6 +7,11 @@ db:
   POSTGRES_PASSWORD: "{{ env_var('POSTGRES_PASSWORD') }}"
   POSTGRES_HOST: "{{ env_var('POSTGRES_HOST') }}"
   POSTGRES_PORT: "{{ env_var('POSTGRES_PORT') }}"
+minio:
+  MINIO_ENDPOINT: "{{ env_var('MINIO_ENDPOINT') }}"
+  MINIO_ACCESS_KEY: "{{ env_var('MINIO_ACCESS_KEY') }}"
+  MINIO_SECRET_KEY: "{{ env_var('MINIO_SECRET_KEY') }}"
+  MINIO_BUCKET: "{{ env_var('MINIO_BUCKET') }}"
 # default:
 #   # Default profile created for data IO access.
 #   # Add your credentials for the source you use, and delete the rest.

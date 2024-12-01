@@ -9,13 +9,16 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import cp630oc.paymentrequeststore.entity.Transaction;
+import cp630oc.paymentrequeststore.entity.TransactionState;
 import cp630oc.paymentrequeststore.entity.Card;
 import cp630oc.paymentrequeststore.entity.Customer;
 import cp630oc.paymentrequeststore.repository.TransactionRepository;
+import cp630oc.paymentrequeststore.repository.TransactionStateRepository;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 public class NotificationRESTController {
@@ -37,6 +40,9 @@ public class NotificationRESTController {
 
         // Get the transaction from the payment request store
         Transaction transaction = transactionRepository.findById(transactionId).orElse(null);
+
+        // Get the transaction state from the payment request store
+        Set<TransactionState> transactionStates = transaction.getTransactionStates();
 
         if (transaction == null) {
             return new ResponseEntity<>("Transaction not found", HttpStatus.NOT_FOUND);
@@ -76,10 +82,21 @@ public class NotificationRESTController {
         String subject = null;
         String body = null;
 
-        if (transaction.getStatus().equals("accepted")) {
+        TransactionState latestTransactionState = null;
+        for (TransactionState transactionState : transactionStates) {
+            if (latestTransactionState == null || transactionState.getDeletedAt() == null) {
+                latestTransactionState = transactionState;
+            } 
+        }
+
+        if (latestTransactionState == null) {
+            return new ResponseEntity<>("Transaction state not found", HttpStatus.NOT_FOUND);
+        }
+
+        if (latestTransactionState.getId().getState().equals("accepted")) {
             subject = "Payment Transaction Accepted";
             body = templateEngine.process("payment-transaction-accepted", context);
-        } else if (transaction.getStatus().equals("onhold")) {
+        } else if (latestTransactionState.getId().getState().equals("onhold")) {
             subject = "Payment Transaction On Hold";
             body = templateEngine.process("payment-transaction-onhold", context);
         }

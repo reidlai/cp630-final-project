@@ -73,7 +73,7 @@ blocks:
   language: python
   name: txn_data_csv
   retry_config: {}
-  status: updated
+  status: failed
   timeout: null
   type: data_loader
   upstream_blocks:
@@ -83,7 +83,7 @@ cache_block_output_in_memory: false
 callbacks: []
 concurrency_config: {}
 conditionals: []
-created_at: '2024-11-29 16:18:59.033381+00:00'
+created_at: '2024-11-30 20:04:05.792280+00:00'
 data_integration: null
 description: null
 executor_config: {}

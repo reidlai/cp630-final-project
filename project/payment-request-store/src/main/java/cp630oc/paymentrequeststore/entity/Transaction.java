@@ -2,6 +2,7 @@ package cp630oc.paymentrequeststore.entity;
 
 import jakarta.persistence.*;
 import java.util.Date;
+import java.util.Set;
 
 /**
  * The transaction entity.
@@ -49,8 +50,8 @@ public class Transaction {
     @Column(name = "fraud_detected", nullable = true)
     private boolean fraudDetected;
 
-    @Column(name = "transaction_state", nullable = true)
-    private String status;
+    @OneToMany(mappedBy = "transaction")
+    private Set<TransactionState> transactionStates;
 
     /**
      * Get the id of the transaction.
@@ -245,18 +246,18 @@ public class Transaction {
     }
 
     /**
-     * Get the status of the transaction.
-     * @return the status of the transaction
+     * Get the transaction states.
+     * @return the transaction states
      */
-    public String getStatus() {
-        return status;
+    public Set<TransactionState> getTransactionStates() {
+        return transactionStates;
     }
 
     /**
-     * Set the status of the transaction.
-     * @param status the status of the transaction
+     * Set the transaction states.
+     * @param transactionStates the transaction states
      */
-    public void setStatus(String status) {
-        this.status = status;
+    public void setTransactionStates(Set<TransactionState> transactionStates) {
+        this.transactionStates = transactionStates;
     }
 }

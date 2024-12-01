@@ -36,15 +36,15 @@ def load_data_from_file(*args, **kwargs) -> pl.DataFrame:
     table_name = kwargs['configuration'].get('table_name')
 
     config_path = path.join(get_repo_path(), 'io_config.yaml')
-    config_profile = 'db'
-    config_loader = ConfigFileLoader(config_path, config_profile)
+    db_config_profile = 'db'
+    db_config_loader = ConfigFileLoader(config_path, db_config_profile)
 
-    postgres_host = config_loader.get('POSTGRES_HOST')
-    postgres_port = config_loader.get('POSTGRES_PORT')
-    postgres_dbname = config_loader.get('POSTGRES_DBNAME')
-    postgres_user = config_loader.get('POSTGRES_USER')
-    postgres_password = config_loader.get('POSTGRES_PASSWORD')
-    postgres_schema = config_loader.get('POSTGRES_SCHEMA')
+    postgres_host = db_config_loader.get('POSTGRES_HOST')
+    postgres_port = db_config_loader.get('POSTGRES_PORT')
+    postgres_dbname = db_config_loader.get('POSTGRES_DBNAME')
+    postgres_user = db_config_loader.get('POSTGRES_USER')
+    postgres_password = db_config_loader.get('POSTGRES_PASSWORD')
+    postgres_schema = db_config_loader.get('POSTGRES_SCHEMA')
 
     # Read the CSV file
     df = pl.read_csv(file_path + "/" + file_name).with_columns([
@@ -80,10 +80,38 @@ def load_data_from_file(*args, **kwargs) -> pl.DataFrame:
         "Cards Issued": "number_cards_issued",
         "Year PIN last Changed": "pin_last_changed_year",
     }).with_row_count("id", offset=0)
-
+        
     conn_url = f"postgresql://{postgres_user}:{postgres_password}@{postgres_host}:{postgres_port}/{postgres_dbname}"
     df.write_database(table_name = f"{postgres_schema}.{table_name}", connection = conn_url, if_exists = "append")
 
+    minio_config_profile = 'minio'
+    minio_config_loader = ConfigFileLoader(config_path, minio_config_profile)
+    minio_endpoint = minio_config_loader.get('MINIO_ENDPOINT')
+    minio_access_key = minio_config_loader.get('MINIO_ACCESS_KEY')
+    minio_secret_key = minio_config_loader.get('MINIO_SECRET_KEY')
+    minio_bucket = minio_config_loader.get('MINIO_BUCKET')
+
+    # write each df into parquet file to minio with suffix of timestamp
+    client = Minio(
+        endpoint=minio_endpoint,
+        access_key=minio_access_key,
+        secret_key=minio_secret_key,
+        secure=False
+    )
+        
+    # read df to parquet file
+    parquet_file = io.BytesIO()
+    df.write_parquet(parquet_file)
+    parquet_file.seek(0)
+    # generate timestamp
+    client.put_object(
+        bucket_name=minio_bucket,
+        object_name=f"{table_name}.parquet",
+        data=parquet_file,
+        length=parquet_file.getbuffer().nbytes,
+        content_type='application/octet-stream'
+    )
+    
     return df
 
 @test

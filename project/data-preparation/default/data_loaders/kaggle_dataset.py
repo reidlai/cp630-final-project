@@ -15,8 +15,8 @@ def load_data(*args, **kwargs):
     Returns:
         Anything (e.g. data frame, dictionary, array, int, str, etc.)
     """
-    # Specify your data loading logic here
-    set_global_variable("data_preparation_pipeline", "file_path", kagglehub.dataset_download("ealtman2019/credit-card-transactions"))
+    pipeline_uuid = kwargs.get('pipeline_uuid')
+    set_global_variable(pipeline_uuid, "file_path", kagglehub.dataset_download("ealtman2019/credit-card-transactions"))
     return {}
 
 @test
