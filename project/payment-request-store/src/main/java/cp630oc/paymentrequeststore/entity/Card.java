@@ -21,12 +21,17 @@ import java.util.List;
  * - transactions: List of Transaction
  */
 @Entity
-@Table(name = "cards")
+@Table(name = "cards", indexes = {
+    @Index(name = "idx_customer_id", columnList = "customer_id")
+})
 public class Card {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    // @Column(name = "customer_id", nullable = false)
+    // private Long customerId;
 
     @Column(name = "card_index", nullable = false)
     private int cardIndex;

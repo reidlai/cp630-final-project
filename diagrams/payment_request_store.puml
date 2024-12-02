@@ -1,55 +1,65 @@
 @startuml ' Define entities 
 entity "Customer" as customer { 
-  * id: integer
-  + firstName: string 
-  + lastName: string
-  + current_age: int 
-  + retirement_age: int
-  + birth_year: int
-  + birth_month: int
-  + gender: string 
+  * id: long
   + address: string
+  + birth_month: int
+  + birth_year: int
+  + credit_card_count: int
+  + credit_score: int
+  + current_age: int 
+  + email: string
+  + firstName: string 
+  + gender: string 
+  + lastName: string
   + latitude: float
   + longitude: float
   + per_capita_income: float
-  + yearly_income: float
+  + retirement_age: int
   + total_debt: float
-  + credit_score: int
-  + credit_card_count: int
+  + yearly_income: float
 }
 
 entity "Card" as card { 
-  * id: integer 
-  + card_number: string 
+  * id: long
+  + account_open_date: date
   + card_brand: string
-  + card_type: string
   + card_expiration_date: date
+  + card_index: int
+  + card_on_dark_web: boolean
+  + card_type: string
+  + credit_limit: float
   + cvv_code: string 
   + has_chip: boolean
   + number_cards_issued: int
-  + credit_limit: float
-  + customer_id: integer 
+  + pin_last_changed_year: int
+  + customer_id: long
 }
 
 entity "Transaction" as transaction { 
-  * id: integer
-  + transaction_datetime: datetime 
-  + card_id: string
-  + transaction_amount: float 
-  + transaction_type: string
-  + merchant_id: integer
+  * id: long
+  + fraud_detected: boolean
   + merchant_city: string
+  + merchant_id: string
+  + merchant_mcc_code: string
   + merchant_state: string
   + merchant_zip: string
-  + merchant_mcc_code: string
-  + currency_code: string 
+  + transaction_amount: float 
+  + transaction_datetime: datetime 
   + transaction_error: string 
-  + fraud_detected: boolean
-  + status: string
+  + transaction_type: string
+  + card_id: string
 }
 
+entity "TransactionState" as transactionState { 
+  * id: long
+  * state: string
+  + created_at: datetime
+  + updated_at: datetime
+  + deleted_at: datetime
+}
 
 customer "1" -- "*" card: customer_id
 card "1" -- "*" transaction: card_id
+transaction "1" -- "*" transactionState: id
 
 @enduml

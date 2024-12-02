@@ -14,8 +14,8 @@ project/payment-processing-service/backend/.gradle
 project/payment-request-store/.gradle
 project/payment-request-store/build
 project/payment-notification-service/backend/build
-project/data-preparation/default/.ssh_tunnel
-project/data-preparation/mage_data
+project/data-processing/default/.ssh_tunnel
+project/data-processing/mage_data
 payment-request-store-build.gradle.txt
 docker-compose.yml.txt
 project-build.gradle.txt
@@ -23,3 +23,5 @@ project/payment-notification-service/backend/payment-nofication-backend-service-
 project/payment-notification-service/backend/payment-notification-backend-service-Dockerfile.txt
 project/payment-notification-service/backend/payment-notification-service.txt
 project/build/reports/problems/problems-report.html
+project/mlops_pipeline/data/12-01-2024-19-42-29_files_list.zip
+project/mlops_pipeline/data/transactions.parquet

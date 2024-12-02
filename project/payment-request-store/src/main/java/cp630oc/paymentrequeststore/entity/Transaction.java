@@ -19,9 +19,8 @@ public class Transaction {
     @Column(name = "transaction_datetime", nullable = false)
     private Date transactionDatetime;
 
-    @ManyToOne
-    @JoinColumn(name = "card_id", nullable = false)
-    private Card card;
+    // @Column(name = "card_index", nullable = false)
+    // private int cardIndex;
 
     @Column(name = "transaction_amount", nullable = false)
     private double transactionAmount;
@@ -49,6 +48,13 @@ public class Transaction {
 
     @Column(name = "fraud_detected", nullable = true)
     private boolean fraudDetected;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumns({
+        @JoinColumn(name = "customer_id", referencedColumnName = "customer_id"),
+        @JoinColumn(name = "card_index", referencedColumnName = "card_index")
+    })
+    private Card card;
 
     @OneToMany(mappedBy = "transaction")
     private Set<TransactionState> transactionStates;
@@ -85,21 +91,21 @@ public class Transaction {
         this.transactionDatetime = transactionDatetime;
     }
 
-    /**
-     * Get the card used for the transaction.
-     * @return the card used for the transaction
-     */
-    public Card getCard() {
-        return card;
-    }
+    // /**
+    //  * Get the card index used for the transaction.
+    //  * @return the card index used for the transaction
+    //  */
+    // public int getCardIndex() {
+    //     return cardIndex;
+    // }
 
-    /**
-     * Set the card used for the transaction.
-     * @param card the card used for the transaction
-     */
-    public void setCard(Card card) {
-        this.card = card;
-    }
+    // /**
+    //  * Set the card index used for the transaction.
+    //  * @param card the card index used for the transaction
+    //  */
+    // public void setCardIndex(int cardIndex) {
+    //     this.cardIndex = cardIndex;
+    // }
 
     /**
      * Get the transaction amount.
@@ -243,6 +249,22 @@ public class Transaction {
      */
     public void setFraudDetected(boolean fraudDetected) {
         this.fraudDetected = fraudDetected;
+    }
+
+    /**
+     * Get the card used for the transaction.
+     * @return the card used for the transaction
+     */
+    public Card getCard() {
+        return card;
+    }
+
+    /**
+     * Set the card used for the transaction.
+     * @param card the card used for the transaction
+     */
+    public void setCard(Card card) {
+        this.card = card;
     }
 
     /**

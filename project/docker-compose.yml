@@ -64,7 +64,7 @@ services:
       - db
   mageai:
     build:
-      context: ./data-preparation
+      context: ./data-processing
       dockerfile: Dockerfile
     container_name: cp630-mageai
     ports: 
@@ -72,7 +72,7 @@ services:
     networks:
       - public-network
     volumes:
-      - ./data-preparation/default:/home/src/default
+      - ./data-processing/default:/home/src/default
       - mageai-data:/home/src/mage_data
     environment:
       POSTGRES_HOST: "db"

@@ -11,8 +11,8 @@ System_Ext(paymentgateway, "Payment Gateway", "An external payment gateway platf
 System_Boundary(paymentsolution, "Payment Solution", "A banking payment solution that process credit card payment request sent by payment gateway") {
     Person(ai_engineer, "AI Engineer", "An engineer who has experience to build machine learning model")
     Person(security_officer, "Security Officer", "An officer who has experience to secure the system") 
-    Container(data_loading, "Data Loading", "A service that used to load data from external source")
-    Container(ml_pipeline, "Machine Learning Pipeline", "A pipeline that used to train and deploy machine learning model")
+    Container(data_loading, "Data Processing", "A service that used to load data from external source")
+    Container(ml_pipeline, "MLOps Pipeline", "A pipeline that used to train and deploy machine learning model")
     ContainerDb(ml_model, "Machine Learning Model", "A machine learning model that used to detect fraud")
     ContainerQueue(message_bus, "Message Bus", "A message bus that used to send message between services")
     Container(model_inference_service, "Model Inference Service", "A service that used to detect fraud")
