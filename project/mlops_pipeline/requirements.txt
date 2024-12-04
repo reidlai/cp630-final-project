@@ -192,7 +192,7 @@ ruamel.yaml @ file:///Users/builder/cbouss/perseverance-python-buildout/croot/ru
 ruamel.yaml.clib @ file:///Users/runner/miniforge3/conda-bld/ruamel.yaml.clib_1707314638640/work
 seaborn @ file:///Users/builder/cbouss/perseverance-python-buildout/croot/seaborn_1699261743317/work
 Send2Trash @ file:///Users/builder/cbouss/perseverance-python-buildout/croot/send2trash_1701806045227/work
-setuptools==68.2.2
+setuptools==70.0.0
 shellingham @ file:///Users/builder/cbouss/perseverance-python-buildout/croot/shellingham_1699241366751/work
 sip @ file:///Users/builder/cbouss/perseverance-python-buildout/croot/sip_1699241391218/work
 six @ file:///tmp/build/80754af9/six_1644875935023/work
