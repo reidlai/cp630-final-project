@@ -39,9 +39,7 @@ services:
       - pg-data:/var/lib/postgresql/data/pgdata 
 
   payment-notification-backend-service:
-    build:
-      context: ./payment-notification-service/backend
-      dockerfile: Dockerfile
+    image: reidlai/cp630-payment-notification-backend-service:latest
     container_name: payment-notification-backend-service
     ports:
       - "8081:8080"
@@ -63,9 +61,7 @@ services:
     depends_on:
       - db
   mageai:
-    build:
-      context: ./data-processing
-      dockerfile: Dockerfile
+    image: reidlai/cp630-mageai:latest
     container_name: cp630-mageai
     ports: 
       - "6789:6789"
