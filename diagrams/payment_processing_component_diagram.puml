@@ -1,0 +1,31 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+set separator none
+title Credit Card Fraud Detection Service - Payment Processing Service
+
+System_Ext(paymentgateway, "Payment Gateway", "An external payment gateway platform that processing payment request made by merchants and customers")
+
+Container(model_inference_service, "Model Inference Service", "A service that used to detect fraud")
+
+Container_Boundary(payment_processing_service, "Payment Processing Service", "Microservice that serve REST API request to process and maintain payment") {
+    Component(payment_request_restcontroller, "Payment Request REST Controller", "A REST controller that used to receive payment request")
+
+    Component(database_client_service, "Database Client Service", "A service consumed by API request handler to persist payment request into database")
+
+}
+
+ContainerDb(payment_request_store, "Payment Request Store", "A database store that used to store Payment Request")
+
+Rel(paymentgateway, payment_request_restcontroller, "Send Payment Request")
+
+Rel(payment_request_restcontroller, database_client_service, "Persist Payment Request")
+Rel(database_client_service, payment_request_store, "Persist Payment Request")
+
+Rel(payment_request_restcontroller, model_inference_service, "Request Fraud Detection Service")
+
+Rel(model_inference_service, payment_request_store, "Update Fraud Detection Result")
+
+@enduml

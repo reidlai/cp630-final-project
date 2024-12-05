@@ -1,0 +1,22 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+set separator none
+title Credit Card Fraud Detection Service - Model Inference Service
+
+Container(payment_processing_service, "Payment Processing Service", "A service that used to process payment")
+ContainerDb(ml_model, "Machine Learning Model", "A machine learning model that used to detect fraud")
+Container(payment_notification_service, "Payment Notification Service", "A service that used to notify payment status")
+
+Container_Boundary(model_inference_service, "Model Inference Service", "A service that used to detect fraud") {
+    Component(service_request_handler, "Service Request Handler", "A component that used to handle incoming service request")
+    Component(model_inference_engine, "Model Inference Engine", "A component that used to run machine learning model")
+}
+
+Rel(payment_processing_service, service_request_handler, "Send Payment Request")
+Rel(ml_model, model_inference_engine, "Load Machine Learning Model")
+Rel(service_request_handler, model_inference_engine, "Request Fraud Detection")
+Rel(service_request_handler, payment_notification_service, "Notify Payment Status")
+@enduml

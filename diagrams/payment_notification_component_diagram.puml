@@ -1,0 +1,24 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+set separator none
+title Credit Card Fraud Detection Service - Payment Notification Service
+
+Container(model_inference_service, "Model Inference Service", "A service that used to detect fraud")
+
+Container_Boundary(payment_notification_service, "Payment Notification Service", "A service that used to notify payment status") {
+    Component(service_request_handler, "Service Request Handler", "A component that used to handle incoming service request")
+    Component(smtp_relay_service, "SMTP Relay Service", "A component that used to connect mail server")
+}
+
+ContainerDb(payment_request_store, "Payment Request Store", "A database store that used to store Payment Request")
+System_Ext(emailsystem, "Email System", "A system that used to send email notification")
+
+Rel(model_inference_service, service_request_handler, "Notify fraud detection status")
+Rel(service_request_handler, smtp_relay_service, "Send email notification")
+Rel(payment_request_store, service_request_handler, "Fetch customer information from Payment Request Store")
+Rel(smtp_relay_service, emailsystem, "Send email notification")
+
+@enduml
