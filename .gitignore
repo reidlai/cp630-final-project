@@ -26,14 +26,7 @@ project/build/reports/problems/problems-report.html
 project/mlops_pipeline/data/12-01-2024-19-42-29_files_list.zip
 project/mlops_pipeline/data/transactions.parquet
 project/mlops_pipeline/data/boxcoxed_transactions.parquet
-project/mlops_pipeline/data/card_brand_encoded.parquet
-project/mlops_pipeline/data/card_type_encoded.parquet
 project/mlops_pipeline/data/encoded_transactions.parquet
-project/mlops_pipeline/data/gender_encoded.parquet
-project/mlops_pipeline/data/merchant_city_encoded.parquet
-project/mlops_pipeline/data/merchant_mcc_code_encoded.parquet
 project/mlops_pipeline/data/scaled_transactions.parquet
-project/mlops_pipeline/data/scaler_params.json
-project/mlops_pipeline/data/transaction_error_encoded.parquet
-project/mlops_pipeline/data/transaction_type_encoded.parquet
 project/mlops_pipeline/data/winsorized_transactions.parquet
+project/mlops_pipeline/data/feature_importance.parquet
