@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Service
-public class NotificationService {
+public class NotificationService implements INotificationService {
 
     @Autowired
     private SMTPRelayService smtpRelayService;
@@ -33,6 +33,7 @@ public class NotificationService {
      * @param notificationRequest
      * @throws Exception
      */
+    @Override
     public void sendNotification(NotificationRequest notificationRequest) throws Exception {
         // Get the transaction ID from the notification request
         Long transactionId = Long.parseLong(notificationRequest.getTransactionId());

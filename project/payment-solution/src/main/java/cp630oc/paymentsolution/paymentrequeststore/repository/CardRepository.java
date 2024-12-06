@@ -9,4 +9,13 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface CardRepository extends JpaRepository<Card, Long> {
+      
+      /**
+      * Find a card by the card number.
+      *
+      * @param cardNumber the card number
+      * @return the card
+      */
+      Card findByCardNumber(String cardNumber);
+      
 }
