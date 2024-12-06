@@ -1,4 +1,4 @@
-package cp630oc.paymentnotificationservice;
+package cp630oc.paymentsolution.paymentnotificationservice;
 
 /**
  * The notification request.
@@ -11,6 +11,8 @@ public class NotificationRequest {
 
     /**
      * Instantiates a new notification request.
+     * 
+     * @param transactionId the transaction id
      */
     public NotificationRequest(String transactionId) {
         this.transactionId = transactionId;

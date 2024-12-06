@@ -1,6 +1,6 @@
-package cp630oc.paymentrequeststore.repository;
+package cp630oc.paymentsolution.paymentrequeststore.repository;
 
-import cp630oc.paymentrequeststore.entity.Customer;
+import cp630oc.paymentsolution.paymentrequeststore.entity.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

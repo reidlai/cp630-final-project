@@ -1,4 +1,4 @@
-package cp630oc.paymentnotificationservice;
+package cp630oc.paymentsolution.paymentnotificationservice;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

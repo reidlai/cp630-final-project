@@ -1,0 +1,121 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.1.5' 
+    id 'io.spring.dependency-management' version '1.1.3'
+    id 'maven-publish'  
+    id 'org.openapi.generator' version '7.0.1'
+}
+
+group = 'cp630oc.paymentsolution'
+version = '0.0.1'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+    withJavadocJar()
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Spring Boot starters
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // JPA
+    implementation 'org.hibernate.orm:hibernate-core:6.2.13.Final'
+    implementation 'org.flywaydb:flyway-core:9.16.0'
+
+    // Thymeleaf template engine
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+    // PostgreSQL
+    runtimeOnly 'org.postgresql:postgresql:42.6.0'
+
+    // OpenAPI Generator
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$projectDir/src/main/resources/payment-solution-apis.yaml"
+    outputDir = "$buildDir/generated-sources/openapi"
+    apiPackage = "cp630oc.paymentsolution.paymentprocessingservice.api"
+    modelPackage = "cp630oc.paymentsolution.paymentprocessingservice.model"
+    configOptions = [
+        dateLibrary: "java8",
+        interfaceOnly: "true",
+        useSpringBoot3: "true",
+        skipDefaultInterface: "true",
+        useTags: "true",
+        documentationProvider: "springdoc",
+        openApiNullable: "false",
+        useOptional: "false",
+        swaggerAnnotations: "false",
+        useSpringController: "true"
+    ]
+    templateDir = "$projectDir/src/main/resources/templates"
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir "${buildDir}/generated/src/main/java"
+        }
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+bootJar {
+    enabled = true
+    archiveBaseName = 'app'
+    archiveVersion = ''
+}
+
+jar {
+    enabled = false
+}
+
+springBoot {
+    mainClass = 'cp630oc.paymentsolution.Application'
+}
+
+tasks.named('javadocJar', Jar) {
+    archiveBaseName = 'payment-solution'
+    archiveVersion = project.version
+    destinationDirectory = file('build/libs')
+}
+
+tasks.withType(Javadoc) {
+    options.addStringOption('Xdoclint:none', '-quiet')
+}
+
+publishing {
+    publications {
+        mavenJar(MavenPublication) {
+            from components.java
+        }
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs += ["$buildDir/generated-sources/openapi/src/main/java"]
+        }
+    }
+}
+
+
+compileJava.dependsOn('openApiGenerate')

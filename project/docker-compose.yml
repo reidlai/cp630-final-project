@@ -38,11 +38,11 @@ services:
     volumes: 
       - pg-data:/var/lib/postgresql/data/pgdata 
 
-  payment-notification-backend-service:
-    image: reidlai/cp630-payment-notification-backend-service:latest
-    container_name: payment-notification-backend-service
+  payment-solution:
+    image: reidlai/cp630-payment-solution:latest
+    container_name: cp630-payment-solution
     ports:
-      - "8081:8080"
+      - "8080:8080"
     networks:
       - public-network
     environment:

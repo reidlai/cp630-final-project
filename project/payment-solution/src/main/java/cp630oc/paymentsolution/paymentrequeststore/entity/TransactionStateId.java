@@ -1,4 +1,4 @@
-package cp630oc.paymentrequeststore.entity;
+package cp630oc.paymentsolution.paymentrequeststore.entity;
 
 import java.io.Serializable;
 import java.util.Objects;

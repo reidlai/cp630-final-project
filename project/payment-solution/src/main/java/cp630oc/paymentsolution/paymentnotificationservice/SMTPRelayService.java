@@ -1,4 +1,4 @@
-package cp630oc.paymentnotificationservice;
+package cp630oc.paymentsolution.paymentnotificationservice;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;

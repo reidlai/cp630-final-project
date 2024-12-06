@@ -30,3 +30,5 @@ project/mlops_pipeline/data/encoded_transactions.parquet
 project/mlops_pipeline/data/scaled_transactions.parquet
 project/mlops_pipeline/data/winsorized_transactions.parquet
 project/mlops_pipeline/data/feature_importance.parquet
+project/payment-solution/.gradle
+project/payment-solution/build

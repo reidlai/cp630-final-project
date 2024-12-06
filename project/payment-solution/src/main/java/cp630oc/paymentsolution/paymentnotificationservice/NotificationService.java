@@ -1,27 +1,22 @@
-package cp630oc.paymentnotificationservice;
+package cp630oc.paymentsolution.paymentnotificationservice;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
-import cp630oc.paymentrequeststore.entity.Transaction;
-import cp630oc.paymentrequeststore.entity.TransactionState;
-import cp630oc.paymentrequeststore.entity.Card;
-import cp630oc.paymentrequeststore.entity.Customer;
-import cp630oc.paymentrequeststore.repository.TransactionRepository;
-import cp630oc.paymentrequeststore.repository.TransactionStateRepository;
+import cp630oc.paymentsolution.paymentrequeststore.entity.Transaction;
+import cp630oc.paymentsolution.paymentrequeststore.entity.TransactionState;
+import cp630oc.paymentsolution.paymentrequeststore.entity.Card;
+import cp630oc.paymentsolution.paymentrequeststore.entity.Customer;
+import cp630oc.paymentsolution.paymentrequeststore.repository.TransactionRepository;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-@RestController
-public class NotificationRESTController {
+@Service
+public class NotificationService {
 
     @Autowired
     private SMTPRelayService smtpRelayService;
@@ -32,41 +27,30 @@ public class NotificationRESTController {
     @Autowired
     private SpringTemplateEngine templateEngine;
 
-    @PostMapping("/notification")
-    public ResponseEntity<String> postNotification(@RequestBody NotificationRequest notificationRequest) {
-
+    /**
+     * Send notification to related party.
+     * 
+     * @param notificationRequest
+     * @throws Exception
+     */
+    public void sendNotification(NotificationRequest notificationRequest) throws Exception {
         // Get the transaction ID from the notification request
         Long transactionId = Long.parseLong(notificationRequest.getTransactionId());
 
         // Get the transaction from the payment request store
-        Transaction transaction = transactionRepository.findById(transactionId).orElse(null);
+        Transaction transaction = transactionRepository.findById(transactionId)
+            .orElseThrow(() -> new Exception("Transaction not found"));
 
         // Get the transaction state from the payment request store
         Set<TransactionState> transactionStates = transaction.getTransactionStates();
 
-        if (transaction == null) {
-            return new ResponseEntity<>("Transaction not found", HttpStatus.NOT_FOUND);
-        }
-
-        // Get the transaction datetime
+        // Get the transaction details
         Date transactionDatetime = transaction.getTransactionDatetime();
-
-        // Get the transaction amount
         double transactionAmount = transaction.getTransactionAmount();
-
-        // Get the card from the transaction
         Card card = transaction.getCard();
-
-        // Get the card number
         String cardNumber = card.getCardNumber();
-
-        // Get the customer from the card
         Customer customer = card.getCustomer();
-
-        // Get customer first name
         String firstName = customer.getFirstName();
-
-        // Get customer email
         String email = customer.getEmail();
 
         // Create a context for the email template
@@ -82,17 +66,13 @@ public class NotificationRESTController {
         String subject = null;
         String body = null;
 
-        TransactionState latestTransactionState = null;
-        for (TransactionState transactionState : transactionStates) {
-            if (latestTransactionState == null || transactionState.getDeletedAt() == null) {
-                latestTransactionState = transactionState;
-            } 
-        }
+        // Find the latest transaction state
+        TransactionState latestTransactionState = transactionStates.stream()
+            .filter(state -> state.getDeletedAt() == null)
+            .findFirst()
+            .orElseThrow(() -> new Exception("Transaction state not found"));
 
-        if (latestTransactionState == null) {
-            return new ResponseEntity<>("Transaction state not found", HttpStatus.NOT_FOUND);
-        }
-
+        // Determine email template based on transaction state
         if (latestTransactionState.getId().getState().equals("accepted")) {
             subject = "Payment Transaction Accepted";
             body = templateEngine.process("payment-transaction-accepted", context);
@@ -101,12 +81,7 @@ public class NotificationRESTController {
             body = templateEngine.process("payment-transaction-onhold", context);
         }
 
-        try {
-            smtpRelayService.sendEmail(email, subject, body);
-        } catch (Exception e) {
-            return new ResponseEntity<>("Failed to send email", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-        return new ResponseEntity<>("Notification was sent", HttpStatus.OK);
+        // Send email
+        smtpRelayService.sendEmail(email, subject, body);
     }
 }
