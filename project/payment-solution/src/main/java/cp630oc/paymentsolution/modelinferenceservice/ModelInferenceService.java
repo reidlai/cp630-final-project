@@ -2,10 +2,13 @@ package cp630oc.paymentsolution.modelinferenceservice;
 
 import ai.onnxruntime.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import cp630oc.paymentsolution.paymentrequeststore.entity.Card;
 import cp630oc.paymentsolution.paymentrequeststore.entity.Transaction;
@@ -14,6 +17,13 @@ import cp630oc.paymentsolution.paymentnotificationservice.NotificationService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.parquet.hadoop.ParquetReader;
+import org.apache.parquet.example.data.simple.SimpleGroup;
+import org.apache.parquet.hadoop.example.GroupReadSupport;
+import org.apache.parquet.example.data.Group;
 
 @Service
 public class ModelInferenceService implements IModelInferenceService {
@@ -28,14 +38,63 @@ public class ModelInferenceService implements IModelInferenceService {
 
     private OrtEnvironment env;
     private OrtSession session;
-    private static final String MODEL_PATH = "path/to/your/model.onnx";
+
+    @Value("${MODEL_PATH}")
+    private String modelPath;
+
+    @Value("${ECONDING_MAPPING_DIR}")
+    private String encodingMappingDir;
+
     private static final int NUM_FEATURES = 9;
+
+    private Map<String, Map<String, Float>> encodingMappings = new HashMap<>();
+    private static String[] encoderNames = {
+        "card_brand",
+        "card_type",
+        "gender",
+        "merchant_city",
+        "merchant_mcc_code",
+        "transaction_error",
+        "transaction_type"
+    };
+
+    private static String[] featureNames = {
+        "merchant_city_encoded",
+        "transaction_amount",
+        "merchant_mcc_code_encoded",
+        "credit_score",
+        "latitude",
+        "total_debt",
+        "transaction_day",
+        "birth_year",
+        "transaction_month"
+    };
+
+    private static String[] categoricalFeatureNames = {
+        "merchant_city_encoded",
+        "merchant_mcc_code_encoded"
+    };
+
+    private static String[] numericalFeatureNames = {
+        "transaction_amount",
+        "credit_score",
+        "latitude",
+        "total_debt",
+        "transaction_day",
+        "birth_year",
+        "transaction_month"
+    };
 
     /**
      * Default constructor
      */
     public ModelInferenceService() {
-        // loadOnnxModel();
+        try {
+            loadEncodingMappings();
+        } catch (IOException e) {
+            logger.error("Failed to load encoding mappings: {}", e.getMessage());
+            throw new RuntimeException("Failed to load encoding mappings", e);
+        }
     }
 
     /**
@@ -47,7 +106,7 @@ public class ModelInferenceService implements IModelInferenceService {
                 env = OrtEnvironment.getEnvironment();
                 OrtSession.SessionOptions sessionOptions = new OrtSession.SessionOptions();
                 sessionOptions.setIntraOpNumThreads(1);
-                return env.createSession(MODEL_PATH, sessionOptions);
+                return env.createSession(modelPath, sessionOptions);
             }
             return session;
         } catch (OrtException e) {
@@ -142,16 +201,12 @@ public class ModelInferenceService implements IModelInferenceService {
     }
 
     // Feature normalization methods
-    private float encodeMerchantCity(String city) {
-        if (city == null) return -2.944654f; // mean value
-        return Math.max(-6.308005f, Math.min(0.353721f, 
-            (city.hashCode() % 7) * 1.889771f - 2.944654f));
+    private float encodeMerchantCity(String merchantCity) {
+        return encodingMappings.get("merchant_city").get(merchantCity);
     }
 
     private float encodeMerchantMccCode(String mccCode) {
-        if (mccCode == null) return 0.105373f; // mean value
-        return Math.max(0.0f, Math.min(0.306327f,
-            Float.parseFloat(mccCode) / 10000.0f));
+        return encodingMappings.get("merchant_mcc_code").get(mccCode);
     }
 
     private float normalizeCreditScore(float creditLimit) {
@@ -194,5 +249,38 @@ public class ModelInferenceService implements IModelInferenceService {
         return Math.max(0.0f, Math.min(3.190054f,
             month / 12.0f * 3.2f));
     }
+    
+    private void loadEncodingMappings() throws IOException {
+        try {
+            for (String encoderName : encoderNames) {
 
+                // Initialize the map for this encoder if it doesn't exist
+                encodingMappings.putIfAbsent(encoderName, new HashMap<>());
+                
+                // Create file and path
+                File parquetFile = new File(encodingMappingDir + "/" + encoderName + "_encoded.parquet");
+                Path path = new Path(parquetFile.getAbsolutePath());
+                
+                // Configure and create reader
+                Configuration conf = new Configuration();
+                ParquetReader<Group> reader = ParquetReader.builder(new GroupReadSupport(), path)
+                    .withConf(conf)
+                    .build();
+        
+                // Read records
+                Group group;
+                while ((group = reader.read()) != null) {
+                    String recordKey = group.getString("key", 0);
+                    float recordValue = group.getFloat("value", 0);
+                    encodingMappings.get(encoderName).put(recordKey, recordValue);
+                }
+        
+                reader.close();
+            } 
+            
+        } catch (IOException e) {
+            logger.error("Failed to load encoding mappings: {}", e.getMessage());
+            throw e;
+        }
+    }
 }

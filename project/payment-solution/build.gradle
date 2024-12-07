@@ -46,6 +46,12 @@ dependencies {
     // ONNIX
     implementation 'com.microsoft.onnxruntime:onnxruntime:1.16.3'
 
+    // Parquet File
+    implementation 'org.apache.parquet:parquet-common:1.12.3'
+    implementation 'org.apache.parquet:parquet-hadoop:1.12.3'
+    implementation 'org.apache.hadoop:hadoop-common:3.3.6'
+    implementation 'org.apache.parquet:parquet-avro:1.12.3'
+
     // Test dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.mockito:mockito-core:5.3.1'
@@ -89,6 +95,7 @@ bootJar {
     enabled = true
     archiveBaseName = 'app'
     archiveVersion = ''
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE  // Add this line
 }
 
 jar {
