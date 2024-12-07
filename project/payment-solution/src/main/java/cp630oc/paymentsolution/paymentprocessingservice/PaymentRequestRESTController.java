@@ -3,32 +3,30 @@ package cp630oc.paymentsolution.paymentprocessingservice;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import cp630oc.paymentsolution.paymentprocessingservice.api.PaymentRequestApi;
 import cp630oc.paymentsolution.paymentprocessingservice.model.CreatePaymentRequestRequest;
 import cp630oc.paymentsolution.paymentprocessingservice.model.CreatePaymentRequestResponse;
 
 import cp630oc.paymentsolution.paymentrequeststore.repository.CardRepository;
-import cp630oc.paymentsolution.paymentrequeststore.repository.CustomerRepository;
 import cp630oc.paymentsolution.paymentrequeststore.repository.TransactionRepository;
 import cp630oc.paymentsolution.paymentrequeststore.repository.TransactionStateRepository;
-
-import cp630oc.paymentsolution.paymentrequeststore.entity.Customer;
+import jakarta.validation.Valid;
 import cp630oc.paymentsolution.paymentrequeststore.entity.Card;
 import cp630oc.paymentsolution.paymentrequeststore.entity.Transaction;
 import cp630oc.paymentsolution.paymentrequeststore.entity.TransactionState;
 import cp630oc.paymentsolution.paymentrequeststore.entity.TransactionStateId;
 
+import cp630oc.paymentsolution.modelinferenceservice.ModelInferenceService;
+
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -38,11 +36,16 @@ import java.util.Set;
 @RestController
 public class PaymentRequestRESTController implements PaymentRequestApi {
 
+    boolean notificationEnabled = false;
+
     @Autowired
     private TransactionRepository transactionRepository;
     
     @Autowired
     private CardRepository cardRepository;
+
+    @Autowired
+    private ModelInferenceService modelInferenceService;
     
     @Autowired
     private TransactionStateRepository transactionStateRepository;
@@ -51,7 +54,14 @@ public class PaymentRequestRESTController implements PaymentRequestApi {
      * Create a payment request matched with operationId in payment-solution-apis.yaml.
      */
     @Override
-    public ResponseEntity<CreatePaymentRequestResponse> createPaymentRequest(CreatePaymentRequestRequest request) {
+    public ResponseEntity<CreatePaymentRequestResponse> createPaymentRequest(
+        @Valid CreatePaymentRequestRequest request, Optional<String> xAuthorization,
+        Optional<String> xApiKey, Optional<String> xNotification) {
+        if (xNotification.isPresent()) {
+            if (xNotification.get().equals("true")) {
+                this.notificationEnabled = true;
+            } 
+        }
         try {
 
             // Fetch card
@@ -60,9 +70,7 @@ public class PaymentRequestRESTController implements PaymentRequestApi {
             // Create transaction
             Transaction savedTransaction = createTransaction(card, request);
 
-            boolean fraudDetected = false;
-
-            
+            boolean fraudDetected = modelInferenceService.detectFraud(card, savedTransaction, notificationEnabled);
 
             // Create response
             CreatePaymentRequestResponse response = new CreatePaymentRequestResponse();
@@ -77,14 +85,12 @@ public class PaymentRequestRESTController implements PaymentRequestApi {
             response.setTransactionTimestamp(transactionTimestamp);
 
             // Set transaction status
-            Set<TransactionState> transactionStates = savedTransaction.getTransactionStates();
-            for (TransactionState transactionState : transactionStates) {
-                if (transactionState.getDeletedAt() == null) {
-                    response.setTransactionStatus(transactionState.getId().getState());
-                    break;
-                }
-            }
-            
+            if (fraudDetected) {
+                response.setTransactionStatus("CANCELLED");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            } 
+
+            response.setTransactionStatus("ACCEPTED");
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
             
         } catch (Exception e) {

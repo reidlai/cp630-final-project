@@ -11,6 +11,25 @@ paths:
         - PaymentRequest
       operationId: createPaymentRequest
       summary: Create a payment request
+      parameters:
+        - name: X-Authorization
+          in: header
+          required: false
+          description: Authorization token
+          schema:
+            type: string
+        - name: X-Api-Key
+          in: header
+          required: false
+          description: API key for authentication
+          schema:
+            type: string
+        - name: X-Notification
+          in: header
+          required: false
+          description: Notification header for additional context
+          schema:
+            type: string
       requestBody:
         required: true
         content:

@@ -1,5 +1,7 @@
 package cp630oc.paymentsolution.paymentprocessingservice;
 
+import cp630oc.paymentsolution.modelinferenceservice.ModelInferenceService;
+import cp630oc.paymentsolution.paymentprocessingservice.PaymentRequestRESTController;
 import cp630oc.paymentsolution.paymentprocessingservice.model.CreatePaymentRequestRequest;
 import cp630oc.paymentsolution.paymentprocessingservice.model.CreatePaymentRequestResponse;
 import cp630oc.paymentsolution.paymentrequeststore.entity.Customer;
@@ -19,9 +21,12 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import ch.qos.logback.core.model.Model;
+
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -37,6 +42,9 @@ public class PaymentRequestRESTControllerTest {
 
     @Mock
     private TransactionStateRepository transactionStateRepository;
+
+    @Mock
+    private ModelInferenceService modelInferenceService;
 
     @InjectMocks
     private PaymentRequestRESTController controller;
@@ -77,19 +85,25 @@ public class PaymentRequestRESTControllerTest {
         mockTransactionState.setCreatedAt(new Date());
         mockTransactionState.setTransaction(mockTransaction);
 
+        // Mock
+
         when(cardRepository.findByCardNumber(request.getCardNumber())).thenReturn(mockCard);
         when(transactionRepository.save(any(Transaction.class))).thenReturn(mockTransaction);
         when(transactionStateRepository.save(any(TransactionState.class))).thenReturn(mockTransactionState);
+        when(modelInferenceService.detectFraud(mockCard, mockTransaction, false)).thenReturn(false);
 
         // Act
-        ResponseEntity<CreatePaymentRequestResponse> response = controller.createPaymentRequest(request);
+        Optional<String> xAuthorization = Optional.of("your-auth-token"); 
+        Optional<String> xApiKey = Optional.of("your-api-key"); 
+        Optional<String> xNotification = Optional.ofNullable(null);
+        ResponseEntity<CreatePaymentRequestResponse> response = controller.createPaymentRequest(request, xAuthorization, xApiKey, xNotification);
 
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.CREATED, response.getStatusCode(), response.getBody().getTransactionError());
         assertNotNull(response.getBody());
         assertEquals("1", response.getBody().getTransactionId());
-        assertEquals("PENDING", response.getBody().getTransactionStatus());
+        assertEquals("ACCEPTED", response.getBody().getTransactionStatus());
     }
 
     @Test
@@ -101,7 +115,10 @@ public class PaymentRequestRESTControllerTest {
         when(cardRepository.findByCardNumber(request.getCardNumber())).thenReturn(null);
 
         // Act
-        ResponseEntity<CreatePaymentRequestResponse> response = controller.createPaymentRequest(request);
+        Optional<String> xAuthorization = Optional.of("your-auth-token"); 
+        Optional<String> xApiKey = Optional.of("your-api-key"); 
+        Optional<String> xNotification = Optional.ofNullable(null);
+        ResponseEntity<CreatePaymentRequestResponse> response = controller.createPaymentRequest(request, xAuthorization, xApiKey, xNotification);
 
         // Assert
         assertNotNull(response);
@@ -122,7 +139,10 @@ public class PaymentRequestRESTControllerTest {
         when(transactionRepository.save(any(Transaction.class))).thenThrow(new RuntimeException("Database error"));
 
         // Act
-        ResponseEntity<CreatePaymentRequestResponse> response = controller.createPaymentRequest(request);
+        Optional<String> xAuthorization = Optional.of("your-auth-token"); 
+        Optional<String> xApiKey = Optional.of("your-api-key"); 
+        Optional<String> xNotification = Optional.ofNullable(null);
+        ResponseEntity<CreatePaymentRequestResponse> response = controller.createPaymentRequest(request, xAuthorization, xApiKey, xNotification);
 
         // Assert
         assertNotNull(response);

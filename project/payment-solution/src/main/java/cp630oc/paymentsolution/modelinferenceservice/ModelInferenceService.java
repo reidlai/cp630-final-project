@@ -1,4 +1,4 @@
-package cp630.oc.paymentsolution.modelinferenceservice;
+package cp630oc.paymentsolution.modelinferenceservice;
 
 import ai.onnxruntime.*;
 
@@ -30,7 +30,6 @@ public class ModelInferenceService implements IModelInferenceService {
     private OrtSession session;
     private static final String MODEL_PATH = "path/to/your/model.onnx";
     private static final int NUM_FEATURES = 9;
-    private boolean fraudDetected;
 
     /**
      * Default constructor
@@ -63,7 +62,7 @@ public class ModelInferenceService implements IModelInferenceService {
      * @return boolean indicating if fraud is detected
      */
     @Override
-    public boolean detectFraud(Card card, Transaction transaction) {
+    public boolean detectFraud(Card card, Transaction transaction, boolean notificationEnabled) {
         try {            
             // Load model if not loaded
             if (session == null) {
@@ -84,23 +83,20 @@ public class ModelInferenceService implements IModelInferenceService {
                 // Get output
                 float[] outputProbs = ((OnnxTensor) results.get(0)).getFloatBuffer().array();
                 
-                // Assuming binary classification where index 1 represents fraud
-                boolean fraudDetected = outputProbs[1] > 0.5;
+                boolean fraudDetected = outputProbs[0] > 0.5;
 
                 // Update fraud_detected field in transaction
                 transaction.setFraudDetected(fraudDetected);
             
                 transactionRepository.save(transaction);
 
-                if (fraudDetected) {
+                if (fraudDetected && notificationEnabled) {
                     // Call notification service
                     try {
                         notificationService.sendNotification(card, transaction);
                     } catch (Exception e) {
-                        // Log the error but don't fail the transaction
                         logger.error("Failed to send notification: " + e.getMessage());
-                        // Or rethrow as RuntimeException if you want it to fail
-                        // throw new RuntimeException("Failed to send notification", e);
+                        throw new RuntimeException("Failed to send notification", e);
                     }
                 }
 
