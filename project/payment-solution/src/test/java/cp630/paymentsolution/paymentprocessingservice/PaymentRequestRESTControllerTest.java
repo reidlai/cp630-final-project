@@ -59,7 +59,7 @@ public class PaymentRequestRESTControllerTest {
         // Arrange
         CreatePaymentRequestRequest request = new CreatePaymentRequestRequest();
         request.setCardNumber("1234567890123456");
-        request.setTransactionAmount(100.0);
+        request.setTransactionAmount(100.0f);
         request.setTransactionDatetime(OffsetDateTime.now(ZoneOffset.UTC));
         request.setMerchantCity("Test City");
         request.setMerchantState("TS");

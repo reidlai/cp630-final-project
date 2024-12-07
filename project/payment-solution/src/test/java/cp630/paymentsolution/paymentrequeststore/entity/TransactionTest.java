@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import cp630oc.paymentsolution.paymentrequeststore.entity.Transaction;
 import cp630oc.paymentsolution.paymentrequeststore.repository.TransactionRepository;
+import cp630oc.paymentsolution.paymentrequeststore.entity.Card;
 
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
@@ -26,7 +27,7 @@ public class TransactionTest {
         // Create a transaction
         transaction = new Transaction();
         transaction.setId(1L);
-        transaction.setTransactionAmount(100.0);
+        transaction.setTransactionAmount(100.0f);
         Card card = new Card();
         card.setId(1L);
         card.setCardNumber("4111111111111111");

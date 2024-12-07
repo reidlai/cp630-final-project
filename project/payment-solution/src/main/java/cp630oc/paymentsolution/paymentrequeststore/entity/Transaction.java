@@ -23,7 +23,7 @@ public class Transaction {
     // private int cardIndex;
 
     @Column(name = "transaction_amount", nullable = false)
-    private double transactionAmount;
+    private float transactionAmount;
 
     @Column(name = "transaction_type", nullable = false)
     private String transactionType;
@@ -91,27 +91,11 @@ public class Transaction {
         this.transactionDatetime = transactionDatetime;
     }
 
-    // /**
-    //  * Get the card index used for the transaction.
-    //  * @return the card index used for the transaction
-    //  */
-    // public int getCardIndex() {
-    //     return cardIndex;
-    // }
-
-    // /**
-    //  * Set the card index used for the transaction.
-    //  * @param card the card index used for the transaction
-    //  */
-    // public void setCardIndex(int cardIndex) {
-    //     this.cardIndex = cardIndex;
-    // }
-
     /**
      * Get the transaction amount.
      * @return the transaction amount
      */
-    public double getTransactionAmount() {
+    public float getTransactionAmount() {
         return transactionAmount;
     }
 
@@ -119,7 +103,7 @@ public class Transaction {
      * Set the transaction amount.
      * @param transactionAmount the transaction amount
      */
-    public void setTransactionAmount(double transactionAmount) {
+    public void setTransactionAmount(float transactionAmount) {
         this.transactionAmount = transactionAmount;
     }
 

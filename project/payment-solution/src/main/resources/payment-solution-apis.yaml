@@ -77,7 +77,7 @@ components:
           description: Date and time of the transaction
         transactionAmount:
           type: number
-          format: double
+          format: float
           description: Amount of the transaction
         transactionType:
           type: string

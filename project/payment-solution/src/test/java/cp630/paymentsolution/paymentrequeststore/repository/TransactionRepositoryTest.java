@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import cp630oc.paymentsolution.paymentrequeststore.repository.TransactionRepository;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ public class TransactionRepositoryTest {
         transaction = new Transaction();
         transaction.setId(1L);
         transaction.setTransactionDatetime(new Date());
-        transaction.setTransactionAmount(100.00);
+        transaction.setTransactionAmount(100.00f);
         transaction.setTransactionType("PURCHASE");
         transaction.setMerchantId("MERCH123");
         transaction.setMerchantCity("Toronto");

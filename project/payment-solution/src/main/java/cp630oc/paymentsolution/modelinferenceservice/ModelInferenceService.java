@@ -5,11 +5,16 @@ import ai.onnxruntime.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.FloatBuffer;
+import java.time.ZoneId;
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import cp630oc.paymentsolution.paymentrequeststore.entity.Card;
 import cp630oc.paymentsolution.paymentrequeststore.entity.Transaction;
 import cp630oc.paymentsolution.paymentrequeststore.repository.TransactionRepository;
@@ -47,17 +52,6 @@ public class ModelInferenceService implements IModelInferenceService {
 
     private static final int NUM_FEATURES = 9;
 
-    private Map<String, Map<String, Float>> encodingMappings = new HashMap<>();
-    private static String[] encoderNames = {
-        "card_brand",
-        "card_type",
-        "gender",
-        "merchant_city",
-        "merchant_mcc_code",
-        "transaction_error",
-        "transaction_type"
-    };
-
     private static String[] featureNames = {
         "merchant_city_encoded",
         "transaction_amount",
@@ -69,6 +63,20 @@ public class ModelInferenceService implements IModelInferenceService {
         "birth_year",
         "transaction_month"
     };
+ 
+    private Map<String, Map<String, Float>> encodingMappings = new HashMap<>();
+
+    private static String[] encoderNames = {
+        "card_brand",
+        "card_type",
+        "gender",
+        "merchant_city",
+        "merchant_mcc_code",
+        "transaction_error",
+        "transaction_type"
+    };
+
+    private Map<String, Map<String, Float>> scalarParameters = new HashMap<>();
 
     private static String[] categoricalFeatureNames = {
         "merchant_city_encoded",
@@ -91,6 +99,7 @@ public class ModelInferenceService implements IModelInferenceService {
     public ModelInferenceService() {
         try {
             loadEncodingMappings();
+            loadScalarParameters();
         } catch (IOException e) {
             logger.error("Failed to load encoding mappings: {}", e.getMessage());
             throw new RuntimeException("Failed to load encoding mappings", e);
@@ -171,83 +180,44 @@ public class ModelInferenceService implements IModelInferenceService {
         float[] features = new float[NUM_FEATURES];
         
         // 1. merchant_city_encoded (mean: -2.944654, std: 1.889771)
-        features[0] = encodeMerchantCity(transaction.getMerchantCity());
+        features[0] = encodeValue("merchant_city", transaction.getMerchantCity());
         
         // 2. transaction_amount (mean: 6.788333, std: 0.567789)
-        features[1] = (float) Math.log(transaction.getTransactionAmount());
+        features[1] = normalizeValue("transaction_amount", transaction.getTransactionAmount());
         
         // 3. merchant_mcc_code_encoded (mean: 0.105373, std: 0.111984)
-        features[2] = encodeMerchantMccCode(transaction.getMerchantMccCode());
+        features[2] = encodeValue("merchant_mcc_code", transaction.getMerchantMccCode());
         
         // 4. credit_score (mean: 3.410716, std: 0.893172)
-        features[3] = normalizeCreditScore(card.getCreditLimit());
+        features[3] = normalizeValue("credit_score", card.getCustomer().getCreditScore());
         
         // 5. latitude (mean: 3.168211, std: 0.921945)
-        features[4] = encodeLatitude(transaction.getMerchantState());
+        features[4] = normalizeValue("latitude", card.getCustomer().getLatitude());
         
         // 6. total_debt (mean: 0.676236, std: 0.438641)
-        features[5] = calculateTotalDebt(card);
+        features[5] = normalizeValue("total_debt", card.getCustomer().getTotalDebt());
         
         // 7. transaction_day (mean: 1.669347, std: 0.981270)
-        features[6] = normalizeTransactionDay(transaction.getTransactionDatetime());
+        features[6] = normalizeValue("transaction_day", transaction.getTransactionDatetime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getDayOfMonth());
         
         // 8. birth_year (mean: 3.046614, std: 0.947527)
-        features[7] = normalizeBirthYear(card.getAccountOpenDate());
+        features[7] = normalizeValue("birth_year", card.getCustomer().getBirthYear());
         
         // 9. transaction_month (mean: 1.604990, std: 1.000072)
-        features[8] = normalizeTransactionMonth(transaction.getTransactionDatetime());
+        features[8] = normalizeValue("transaction_month", transaction.getTransactionDatetime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getMonthValue());
         
         return features;
     }
 
     // Feature normalization methods
-    private float encodeMerchantCity(String merchantCity) {
-        return encodingMappings.get("merchant_city").get(merchantCity);
+    private float encodeValue(String key, String value) {
+        return encodingMappings.get(key).get(value).floatValue();
     }
 
-    private float encodeMerchantMccCode(String mccCode) {
-        return encodingMappings.get("merchant_mcc_code").get(mccCode);
-    }
-
-    private float normalizeCreditScore(float creditLimit) {
-        return Math.max(1.557801f, Math.min(4.945640f,
-            (creditLimit - 5000.0f) / 10000.0f + 3.410716f));
-    }
-
-    private float encodeLatitude(String state) {
-        if (state == null) return 3.168211f; // mean value
-        return Math.max(1.380197f, Math.min(4.598690f,
-            (state.hashCode() % 4) * 0.921945f + 3.168211f));
-    }
-
-    private float calculateTotalDebt(Card card) {
-        float baseDebt = card.getCardOnDarkWeb() ? 0.8f : 0.4f;
-        return Math.max(0.0f, Math.min(1.443322f, 
-            baseDebt + (card.getNumberCardsIssued() - 1) * 0.1f));
-    }
-
-    private float normalizeTransactionDay(Date date) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(date);
-        float day = cal.get(Calendar.DAY_OF_MONTH);
-        return Math.max(0.113700f, Math.min(3.183609f,
-            (day / 31.0f) * 2.0f + 0.5f));
-    }
-
-    private float normalizeBirthYear(Date accountOpenDate) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(accountOpenDate);
-        int year = cal.get(Calendar.YEAR);
-        return Math.max(1.120426f, Math.min(4.419460f,
-            (year - 2000) / 20.0f + 3.0f));
-    }
-
-    private float normalizeTransactionMonth(Date date) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(date);
-        float month = cal.get(Calendar.MONTH);
-        return Math.max(0.0f, Math.min(3.190054f,
-            month / 12.0f * 3.2f));
+    private float normalizeValue(String key, float value) {
+        Float mean = scalarParameters.get(key).get("mean");
+        Float std = scalarParameters.get(key).get("std");
+        return Float.valueOf((value - mean) / std).floatValue();
     }
     
     private void loadEncodingMappings() throws IOException {
@@ -280,6 +250,30 @@ public class ModelInferenceService implements IModelInferenceService {
             
         } catch (IOException e) {
             logger.error("Failed to load encoding mappings: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    private void loadScalarParameters() throws IOException {
+ 
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(new File(encodingMappingDir + "/scalar_params.json"));
+            
+            // Load parameters from JSON
+            String[] columns = mapper.convertValue(root.get("columns"), String[].class);
+            float[] mean = mapper.convertValue(root.get("mean"), float[].class);
+            float[] std = mapper.convertValue(root.get("std"), float[].class);
+
+            for (int i = 0; i < columns.length; i++) {
+                Map<String, Float> scalarParams = new HashMap<>();
+                scalarParams.put("mean", mean[i]);
+                scalarParams.put("std", std[i]);
+                scalarParameters.put(columns[i], scalarParams);
+            }
+            
+        } catch (IOException e) {
+            logger.error("Failed to load scalar parameters: {}", e.getMessage());
             throw e;
         }
     }
