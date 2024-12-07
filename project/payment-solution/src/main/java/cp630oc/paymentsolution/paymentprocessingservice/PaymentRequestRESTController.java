@@ -60,6 +60,10 @@ public class PaymentRequestRESTController implements PaymentRequestApi {
             // Create transaction
             Transaction savedTransaction = createTransaction(card, request);
 
+            boolean fraudDetected = false;
+
+            
+
             // Create response
             CreatePaymentRequestResponse response = new CreatePaymentRequestResponse();
 

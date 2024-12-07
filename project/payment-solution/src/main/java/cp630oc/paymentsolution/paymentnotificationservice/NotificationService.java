@@ -9,6 +9,7 @@ import cp630oc.paymentsolution.paymentrequeststore.entity.TransactionState;
 import cp630oc.paymentsolution.paymentrequeststore.entity.Card;
 import cp630oc.paymentsolution.paymentrequeststore.entity.Customer;
 import cp630oc.paymentsolution.paymentrequeststore.repository.TransactionRepository;
+import cp630oc.paymentsolution.paymentrequeststore.repository.CardRepository;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -30,17 +31,14 @@ public class NotificationService implements INotificationService {
     /**
      * Send notification to related party.
      * 
-     * @param notificationRequest
+     * @param card Card Entity
+     * @param transaction Transaction Entity
      * @throws Exception
      */
     @Override
-    public void sendNotification(NotificationRequest notificationRequest) throws Exception {
+    public void sendNotification(Card card, Transaction transaction) throws Exception {
         // Get the transaction ID from the notification request
-        Long transactionId = Long.parseLong(notificationRequest.getTransactionId());
-
-        // Get the transaction from the payment request store
-        Transaction transaction = transactionRepository.findById(transactionId)
-            .orElseThrow(() -> new Exception("Transaction not found"));
+        Long transactionId = transaction.getId();
 
         // Get the transaction state from the payment request store
         Set<TransactionState> transactionStates = transaction.getTransactionStates();
@@ -48,7 +46,7 @@ public class NotificationService implements INotificationService {
         // Get the transaction details
         Date transactionDatetime = transaction.getTransactionDatetime();
         double transactionAmount = transaction.getTransactionAmount();
-        Card card = transaction.getCard();
+
         String cardNumber = card.getCardNumber();
         Customer customer = card.getCustomer();
         String firstName = customer.getFirstName();
@@ -74,10 +72,10 @@ public class NotificationService implements INotificationService {
             .orElseThrow(() -> new Exception("Transaction state not found"));
 
         // Determine email template based on transaction state
-        if (latestTransactionState.getId().getState().equals("accepted")) {
+        if (latestTransactionState.getId().getState().equals("ACCEPTED")) {
             subject = "Payment Transaction Accepted";
             body = templateEngine.process("payment-transaction-accepted", context);
-        } else if (latestTransactionState.getId().getState().equals("onhold")) {
+        } else if (latestTransactionState.getId().getState().equals("ONHOLD")) {
             subject = "Payment Transaction On Hold";
             body = templateEngine.process("payment-transaction-onhold", context);
         }
