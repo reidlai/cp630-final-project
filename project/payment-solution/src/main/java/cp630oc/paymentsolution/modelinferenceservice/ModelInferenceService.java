@@ -10,6 +10,7 @@ import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.couchbase.CouchbaseProperties.Io;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -93,6 +94,9 @@ public class ModelInferenceService implements IModelInferenceService {
         "transaction_month"
     };
 
+    private Map<String, Map<String, Float>> winsorBounds = new HashMap<>();
+
+
     /**
      * Default constructor
      */
@@ -100,6 +104,7 @@ public class ModelInferenceService implements IModelInferenceService {
         try {
             loadEncodingMappings();
             loadScalarParameters();
+            loadWinsorParams();
         } catch (IOException e) {
             logger.error("Failed to load encoding mappings: {}", e.getMessage());
             throw new RuntimeException("Failed to load encoding mappings", e);
@@ -206,6 +211,13 @@ public class ModelInferenceService implements IModelInferenceService {
         // 9. transaction_month (mean: 1.604990, std: 1.000072)
         features[8] = normalizeValue("transaction_month", transaction.getTransactionDatetime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getMonthValue());
         
+        // Winsorize features
+        for (int i = 0; i < NUM_FEATURES; i++) {
+            String featureName = featureNames[i];
+            float lowerBound = winsorBounds.get(featureName).get("lower_bound");
+            float upperBound = winsorBounds.get(featureName).get("upper_bound");
+            features[i] = Math.min(Math.max(features[i], lowerBound), upperBound);
+        }
         return features;
     }
 
@@ -274,6 +286,27 @@ public class ModelInferenceService implements IModelInferenceService {
             
         } catch (IOException e) {
             logger.error("Failed to load scalar parameters: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    private void loadWinsorParams() throws IOException{
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(new File(encodingMappingDir + "/winsor_params.json"));
+            
+            root.fields().forEachRemaining(entry -> {
+                String feature = entry.getKey();
+                JsonNode boundsNode = entry.getValue();
+                
+                Map<String, Float> bounds = new HashMap<>();
+                bounds.put("lower_bound", boundsNode.get("lower_bound").floatValue());
+                bounds.put("upper_bound", boundsNode.get("upper_bound").floatValue());
+                
+                winsorBounds.put(feature, bounds);
+            });
+        } catch (IOException e) {
+            logger.error("Failed to load winsorization parameters: {}", e.getMessage());
             throw e;
         }
     }
