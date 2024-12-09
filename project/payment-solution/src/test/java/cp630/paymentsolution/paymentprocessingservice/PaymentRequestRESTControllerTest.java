@@ -96,7 +96,7 @@ public class PaymentRequestRESTControllerTest {
         when(cardRepository.findByCardNumber(request.getCardNumber())).thenReturn(mockCard);
         when(transactionRepository.save(any(Transaction.class))).thenReturn(mockTransaction);
         when(transactionStateRepository.save(any(TransactionState.class))).thenReturn(mockTransactionState);
-        when(modelInferenceService.fraudProbability(mockCard, mockTransaction, false)).thenReturn(0.1f);
+        when(modelInferenceService.detectFraud(mockCard, mockTransaction, false)).thenReturn(false);
 
         // Act
         Optional<String> xAuthorization = Optional.of("your-auth-token"); 

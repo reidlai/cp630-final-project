@@ -20,7 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import cp630oc.paymentsolution.paymentrequeststore.entity.Card;
 import cp630oc.paymentsolution.paymentrequeststore.entity.Transaction;
-import cp630oc.paymentsolution.paymentrequeststore.repository.TransactionRepository;
+import cp630oc.paymentsolution.paymentrequeststore.entity.TransactionState;
+import cp630oc.paymentsolution.paymentrequeststore.entity.TransactionStateId;
+import cp630oc.paymentsolution.paymentrequeststore.repository.TransactionStateRepository;
 import cp630oc.paymentsolution.paymentnotificationservice.NotificationService;
 
 
@@ -30,10 +32,10 @@ public class ModelInferenceService implements IModelInferenceService {
     private static final Logger logger = LoggerFactory.getLogger(ModelInferenceService.class);
 
     @Autowired
-    private TransactionRepository transactionRepository;
+    private NotificationService notificationService;
 
     @Autowired
-    private NotificationService notificationService;
+    private TransactionStateRepository transactionStateRepository;
 
     private OrtEnvironment env;
     private OrtSession session;
@@ -153,8 +155,8 @@ public class ModelInferenceService implements IModelInferenceService {
      * @return boolean indicating if fraud is detected
      */
     @Override
-    public float fraudProbability(Card card, Transaction transaction, boolean notificationEnabled) {
-        boolean fraudDetected = true;
+    public boolean detectFraud(Card card, Transaction transaction, boolean notificationEnabled) {
+     
         if (card == null || transaction == null) {
             throw new IllegalArgumentException("Card and Transaction cannot be null");
         }
@@ -182,34 +184,70 @@ public class ModelInferenceService implements IModelInferenceService {
             OrtSession.Result results = session.run(inputs);
 
             // Get the probabilities output
-            Optional<OnnxValue> probabilitiesOptional = results.get("probabilities");
-            
-            if (!probabilitiesOptional.isPresent()) {
-                throw new Exception("Probabilities output not found in model results");
+            // Optional<OnnxValue> probabilitiesOptional = results.get("probabilities");
+            Optional<OnnxValue> labelOptional = results.get("label");
+
+            if (!labelOptional.isPresent()) {
+                throw new RuntimeException("Label output not found in model results");
             }
 
-            OnnxValue probabilitiesOutput = probabilitiesOptional.get();
+            // OnnxValue probabilitiesOutput = probabilitiesOptional.get();
+            OnnxValue labelOutput = labelOptional.get();
 
-            if (!(probabilitiesOutput instanceof OnnxSequence)) {
-                throw new RuntimeException("Expected OnnxSequence output but got: " + probabilitiesOutput.getClass());
+            if (!(labelOutput instanceof OnnxTensor)) {
+                throw new RuntimeException("Expected OnnxTensor output but got: " + labelOutput.getClass());
             }
 
-            OnnxSequence sequence = (OnnxSequence) probabilitiesOutput;
+            // OnnxSequence sequence = (OnnxSequence) probabilitiesOutput;
+            OnnxTensor labelTensor = (OnnxTensor) labelOutput;
 
-            // Extract the sequence value (list of maps)
-            @SuppressWarnings("unchecked")
-            List<OnnxMap> probabilityList = (List<OnnxMap>) sequence.getValue();
+            // convert the probabilities to a float array
+            long[] labelArray = (long[]) labelTensor.getValue();
 
-            // Get the first map (since we have one input, there will be one output)
-            OnnxMap probabilityMap = probabilityList.get(0);
+            // Get the fraud detection result
+            boolean fraudDetected = (labelArray[0] == 1);
 
+            // Close the input tensor
+            inputTensor.close();
 
-            // Get the probability for class 1 (fraud)
-            @SuppressWarnings("unchecked")
-            Map<Long, Float> probabilities = (Map<Long, Float>) probabilityMap.getValue();
-            float fraudProbability = probabilities.get(1L);
-        
-            return fraudProbability;
+            // Close the results
+            results.close();
+
+            // Update the transaction with the fraud detection result
+            transaction.setFraudDetected(fraudDetected);
+
+            // Save the transaction state
+            TransactionState currentState = transactionStateRepository.findLatestStateById(transaction.getId());
+            if (currentState != null) {
+                currentState.setDeletedAt(new Date());
+                TransactionState newState = new TransactionState();
+                TransactionStateId newStateId = new TransactionStateId();
+                newStateId.setId(transaction.getId());
+                newState.setId(newStateId);
+                newState.setCreatedAt(new Date());
+                newState.setUpdatedAt(new Date());
+
+                if (fraudDetected) {
+                    newStateId.setState("ONHOLD");
+                } else {
+                    newStateId.setState("ACCEPTED");
+                }
+                TransactionState savedTransactionState = transactionStateRepository.save(newState);
+                if (savedTransactionState == null) {
+                    logger.error("[{}] Failed to save transaction state", TAG);
+                    throw new Exception("Failed to save transaction state");
+                }
+                transactionStateRepository.flush();
+                transaction.getTransactionStates().add(savedTransactionState);
+            }
+
+            if (notificationEnabled) {
+                logger.debug("[{}] Calling sendNotification...", TAG);
+                notificationService.sendNotification(card, transaction);
+                logger.debug("[{}] sendNotification call returned", TAG);
+            }
+
+            return fraudDetected;
 
         } catch (Exception e) {
             logger.error("[{}] Error during fraud detection: {}", TAG, e.getMessage());
@@ -230,57 +268,65 @@ public class ModelInferenceService implements IModelInferenceService {
         
         // 1. merchant_city_encoded (mean: -2.944654, std: 1.889771)
         logger.debug("[{}] Extracting merchant_city: {}", TAG, transaction.getMerchantCity());
-        features[0] = normalizeValue("merchant_city_encoded", encodeValue("merchant_city", transaction.getMerchantCity()));
+        features[0] = encodeValue("merchant_city", transaction.getMerchantCity());
         
         // 2. transaction_amount (mean: 6.788333, std: 0.567789)
         logger.debug("[{}] Extracting transaction_amount: {}", TAG, transaction.getTransactionAmount());
-        features[1] = normalizeValue("transaction_amount", transaction.getTransactionAmount());
+        features[1] = transaction.getTransactionAmount();
         
         // 3. latitude (mean: 0.000000, std: 1.000000)
         logger.debug("[{}] Extracting latitude: {}", TAG, card.getCustomer().getLatitude());
-        features[2] = normalizeValue("latitude", card.getCustomer().getLatitude());
+        features[2] = card.getCustomer().getLatitude();
 
         // 4. merchant_mcc_code_encoded (mean: -0.000000, std: 1.000000)
         logger.debug("[{}] Extracting merchant_mcc_code: {}", TAG, transaction.getMerchantMccCode());
-        features[3] = normalizeValue("merchant_mcc_code_encoded", encodeValue("merchant_mcc_code", transaction.getMerchantMccCode()));
+        features[3] = encodeValue("merchant_mcc_code", transaction.getMerchantMccCode());
 
         // 5. total_debt (mean: 0.000000, std: 1.000000)
         logger.debug("[{}] Extracting total_debt: {}", TAG, card.getCustomer().getTotalDebt());
-        features[4] = normalizeValue("total_debt", card.getCustomer().getTotalDebt());
+        features[4] = card.getCustomer().getTotalDebt();
 
         // 6. credit_score (mean: 0.000000, std: 1.000000)
         logger.debug("[{}] Extracting credit_score: {}", TAG, card.getCustomer().getCreditScore());
-        features[5] = normalizeValue("credit_score", card.getCustomer().getCreditScore());
+        features[5] = card.getCustomer().getCreditScore();
 
         // 7. longitude (mean: 0.000000, std: 1.000000)
         logger.debug("[{}] Extracting longitude: {}", TAG, card.getCustomer().getLongitude());
-        features[6] = normalizeValue("longitude", card.getCustomer().getLongitude());
+        features[6] = card.getCustomer().getLongitude();
 
         // 8. transaction_day (mean: 0.000000, std: 1.000000)
         logger.debug("[{}] Extracting transaction_day: {}", TAG, transaction.getTransactionDatetime().toInstant().atZone(ZoneId.systemDefault()).getDayOfMonth());
-        features[7] = normalizeValue("transaction_day", transaction.getTransactionDatetime().toInstant().atZone(ZoneId.systemDefault()).getDayOfMonth());
+        features[7] = transaction.getTransactionDatetime().toInstant().atZone(ZoneId.systemDefault()).getDayOfMonth();
 
         // 9. birth_year (mean: 0.000000, std: 1.000000)
         logger.debug("[{}] Extracting birth_year: {}", TAG, card.getCustomer().getBirthYear());
-        features[8] = normalizeValue("birth_year", card.getCustomer().getBirthYear());
+        features[8] = card.getCustomer().getBirthYear();
         
-        // Winsorize features
-        for (int i = 0; i < NUM_FEATURES; i++) {
-            String featureName = featureNames[i];
+        // // Standardize features
+        // for (int i = 0; i < NUM_FEATURES; i++) {
+        //     String featureName = featureNames[i];
+        //     logger.debug("[{}] Standardizing feature: {}", TAG, featureName);
+        //     features[i] = normalizeValue(featureName, features[i]);
+        //     logger.debug("[{}] Standardized feature: {}", TAG, features[i]);
+        // }
 
-            logger.debug("[{}] Winsorizing feature: {}", TAG, featureName);
-            float lowerBound = winsorBounds.get(featureName).get("lower_bound");
-            float upperBound = winsorBounds.get(featureName).get("upper_bound");
-            features[i] = Math.min(Math.max(features[i], lowerBound), upperBound);
-            logger.debug("[{}] Winsorized feature: {}", TAG, features[i]);
-        }
+        // // Winsorize features
+        // for (int i = 0; i < NUM_FEATURES; i++) {
+        //     String featureName = featureNames[i];
 
-        // Apply Box-Cox transformation to numeric features
-        for (int i = 0; i < featureNames.length; i++) {
-            logger.debug("[{}] Applying Box-Cox transformation to feature: {}", TAG, featureNames[i]);
-            features[i] = applyBoxCox(featureNames[i], features[i]);
-            logger.debug("[{}] Box-Cox transformed feature: {}", TAG, features[i]);
-        }
+        //     logger.debug("[{}] Winsorizing feature: {}", TAG, featureName);
+        //     float lowerBound = winsorBounds.get(featureName).get("lower_bound");
+        //     float upperBound = winsorBounds.get(featureName).get("upper_bound");
+        //     features[i] = Math.min(Math.max(features[i], lowerBound), upperBound);
+        //     logger.debug("[{}] Winsorized feature: {}", TAG, features[i]);
+        // }
+
+        // // Apply Box-Cox transformation to numeric features
+        // for (int i = 0; i < featureNames.length; i++) {
+        //     logger.debug("[{}] Applying Box-Cox transformation to feature: {}", TAG, featureNames[i]);
+        //     features[i] = applyBoxCox(featureNames[i], features[i]);
+        //     logger.debug("[{}] Box-Cox transformed feature: {}", TAG, features[i]);
+        // }
 
         return features;
     }
@@ -290,6 +336,8 @@ public class ModelInferenceService implements IModelInferenceService {
         return encodingMappings.get(key).get(value).floatValue();
     }
 
+    
+    @SuppressWarnings("unused")
     private float normalizeValue(String key, float value) {
         Float mean = scalarParameters.get(key).get("mean");
         Float std = scalarParameters.get(key).get("std");
@@ -411,6 +459,7 @@ public class ModelInferenceService implements IModelInferenceService {
         }
     }
 
+    @SuppressWarnings("unused")
     private float applyBoxCox(String featureName, float value) {
         Map<String, Float> params = boxcoxParams.get(featureName);
         if (params == null) {

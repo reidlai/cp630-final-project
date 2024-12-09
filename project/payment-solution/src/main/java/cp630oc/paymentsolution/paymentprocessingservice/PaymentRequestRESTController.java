@@ -72,8 +72,6 @@ public class PaymentRequestRESTController implements PaymentRequestApi {
 
         try {
 
-            
-
             // Fetch card
             logger.debug("[{}] Fetching card ...", TAG);
             Card card = fetchCard(request);
@@ -86,8 +84,8 @@ public class PaymentRequestRESTController implements PaymentRequestApi {
 
             // Detect fraud
             logger.debug("[{}] Detecting fraud ...", TAG);
-            float probability = modelInferenceService.fraudProbability(card, savedTransaction, notificationEnabled);
-            logger.debug("[{}] Fraud probability: {}", TAG, probability);
+            boolean fraudDetected = modelInferenceService.detectFraud(card, savedTransaction, notificationEnabled);
+            logger.debug("[{}] Fraud detected: {}", TAG, fraudDetected);
 
             // Create response
             logger.debug("[{}] Creating response ...", TAG);
@@ -103,9 +101,9 @@ public class PaymentRequestRESTController implements PaymentRequestApi {
             OffsetDateTime transactionTimestamp = Instant.ofEpochMilli(transactionDatetime.getTime())
                                                 .atOffset(ZoneOffset.UTC);
             response.setTransactionTimestamp(transactionTimestamp);
-            response.setFraudProbability(probability);
 
-            boolean fraudDetected = probability > 0.5;
+
+    
             response.setFraudDetected(fraudDetected);
 
             // Set transaction status
@@ -205,6 +203,7 @@ public class PaymentRequestRESTController implements PaymentRequestApi {
                 throw new Exception("Failed to save transaction");
             }
             logger.debug("[{}] Transaction saved: {}", TAG, savedTransaction.getId());
+            transactionRepository.flush();
 
             // Create initial transaction state
             logger.debug("[{}] Creating initial transaction state ...", TAG);
@@ -225,7 +224,8 @@ public class PaymentRequestRESTController implements PaymentRequestApi {
                 throw new Exception("Failed to save transaction state");
             }
             logger.debug("[{}] Transaction state saved: {}", TAG, savedTransactionState.getId());
-
+            transactionStateRepository.flush();
+            
             // add intial states to transaction
             Set<TransactionState> transactionStates = new HashSet<>();
             transactionStates.add(savedTransactionState);

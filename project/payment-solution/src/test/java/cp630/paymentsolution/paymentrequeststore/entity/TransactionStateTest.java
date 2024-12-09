@@ -5,6 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import cp630oc.paymentsolution.paymentrequeststore.entity.Transaction;
+import cp630oc.paymentsolution.paymentrequeststore.entity.TransactionState;
+import cp630oc.paymentsolution.paymentrequeststore.entity.TransactionStateId;
 
 import java.util.Date;
 import static org.junit.jupiter.api.Assertions.*;
@@ -54,13 +57,6 @@ public class TransactionStateTest {
         Date testDate = new Date();
         transactionState.setCreatedAt(testDate);
         assertEquals(testDate, transactionState.getCreatedAt());
-    }
-
-    @Test
-    void testUpdatedAt() {
-        Date testDate = new Date();
-        transactionState.setUpdatedAt(testDate);
-        assertEquals(testDate, transactionState.getUpdatedAt());
     }
 
     @Test

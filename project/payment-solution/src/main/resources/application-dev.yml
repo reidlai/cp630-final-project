@@ -4,6 +4,9 @@ server:
   #   context-path: /v1/payment-solution
 
 spring:
+  config:
+    activate:
+      on-profile: dev
   datasource:
     url: jdbc:postgresql://localhost:5432/your_database
     username: your_username
@@ -16,18 +19,21 @@ spring:
       ddl-auto: update
     show-sql: true
   mail:
-    host: localhost
+    host: mailhog
     port: 1025
     properties:
       mail:
+        transport:
+          protocol: smtp
         smtp:
           auth: false
           starttls:
             enable: false
+      debug: true
+    default-encoding: UTF-8 
   main: 
     debug: true
-  prifiles:
-    active: dev
+
     
 logging:
   level:

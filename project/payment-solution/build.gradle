@@ -48,7 +48,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-core:9.16.0'
 
     // Thymeleaf template engine
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    // implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
     // PostgreSQL
     runtimeOnly 'org.postgresql:postgresql:42.6.0'
@@ -91,7 +91,7 @@ openApiGenerate {
         swaggerAnnotations: "false",
         useSpringController: "true"
     ]
-    templateDir = "$projectDir/src/main/resources/templates"
+    templateDir = "$projectDir/src/main/resources/api"
 }
 
 sourceSets {

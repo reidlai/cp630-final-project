@@ -1,28 +1,27 @@
 package cp630oc.paymentsolution.paymentnotificationservice;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.spring6.SpringTemplateEngine;
+
 import cp630oc.paymentsolution.paymentrequeststore.entity.Transaction;
 import cp630oc.paymentsolution.paymentrequeststore.entity.TransactionState;
 import cp630oc.paymentsolution.paymentrequeststore.entity.Card;
 import cp630oc.paymentsolution.paymentrequeststore.entity.Customer;
-import cp630oc.paymentsolution.paymentrequeststore.repository.TransactionRepository;
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 @Service
 public class NotificationService implements INotificationService {
 
-    @Autowired
-    private SMTPRelayService smtpRelayService;
+    private static final Logger logger = LoggerFactory.getLogger(NotificationService.class);
+
+    private static final String TAG = NotificationService.class.getName();
 
     @Autowired
-    private SpringTemplateEngine templateEngine;
+    private SMTPRelayService smtpRelayService;
 
     /**
      * Send notification to related party.
@@ -33,6 +32,9 @@ public class NotificationService implements INotificationService {
      */
     @Override
     public void sendNotification(Card card, Transaction transaction) throws Exception {
+
+        logger.debug("[{}] Sending notification for transaction ID: {}", TAG, transaction.getId());
+
         // Get the transaction ID from the notification request
         Long transactionId = transaction.getId();
 
@@ -48,35 +50,58 @@ public class NotificationService implements INotificationService {
         String firstName = customer.getFirstName();
         String email = customer.getEmail();
 
-        // Create a context for the email template
-        Context context = new Context();
-        Map<String, Object> params = new HashMap<>();
-        params.put("transactionId", transactionId);
-        params.put("transactionDatetime", transactionDatetime);
-        params.put("transactionAmount", transactionAmount);
-        params.put("cardNumber", cardNumber);
-        params.put("firstName", firstName);
-        context.setVariables(params);
-
         String subject = null;
         String body = null;
 
-        // Find the latest transaction state
-        TransactionState latestTransactionState = transactionStates.stream()
-            .filter(state -> state.getDeletedAt() == null)
-            .findFirst()
-            .orElseThrow(() -> new Exception("Transaction state not found"));
+        TransactionState currentState = null;
+        for (TransactionState transactionState : transactionStates) {
+            if (transactionState.getDeletedAt() == null) {
+                currentState = transactionState;
+            }
+        }
+
+        if (currentState == null) {
+            throw new Exception("No current transaction state found for transaction ID: " + transactionId);
+        }
 
         // Determine email template based on transaction state
-        if (latestTransactionState.getId().getState().equals("ACCEPTED")) {
+        logger.debug("[{}] Rendering email template for transaction state: {}", TAG, currentState.getId().getState());
+        if (currentState.getId().getState().equals("ACCEPTED")) {
             subject = "Payment Transaction Accepted";
-            body = templateEngine.process("payment-transaction-accepted", context);
-        } else if (latestTransactionState.getId().getState().equals("ONHOLD")) {
+            body = createAcceptedEmailBody(transactionId, transactionDatetime, transactionAmount, cardNumber, firstName);
+        } else if (currentState.getId().getState().equals("ONHOLD")) {
             subject = "Payment Transaction On Hold";
-            body = templateEngine.process("payment-transaction-onhold", context);
+            body = createOnHoldEmailBody(transactionId, transactionDatetime, transactionAmount, cardNumber, firstName);
         }
 
         // Send email
+        logger.debug("[{}] Sending email to: {}", TAG, email);
         smtpRelayService.sendEmail(email, subject, body);
+    }
+
+    private String createAcceptedEmailBody(Long transactionId, Date transactionDatetime, double transactionAmount, String cardNumber, String firstName) {
+        return "Dear " + firstName + ",\n\n" +
+               "Your payment transaction has been accepted.\n\n" +
+               "Transaction Details:\n" +
+               "Transaction ID: " + transactionId + "\n" +
+               "Transaction Date: " + transactionDatetime + "\n" +
+               "Transaction Amount: $" + transactionAmount + "\n" +
+               "Card Number: " + cardNumber + "\n\n" +
+               "Thank you for your business.\n\n" +
+               "Best regards,\n" +
+               "Your Company Name";
+    }
+
+    private String createOnHoldEmailBody(Long transactionId, Date transactionDatetime, double transactionAmount, String cardNumber, String firstName) {
+        return "Dear " + firstName + ",\n\n" +
+               "Your payment transaction is currently on hold.\n\n" +
+               "Transaction Details:\n" +
+               "Transaction ID: " + transactionId + "\n" +
+               "Transaction Date: " + transactionDatetime + "\n" +
+               "Transaction Amount: $" + transactionAmount + "\n" +
+               "Card Number: " + cardNumber + "\n\n" +
+               "Please contact our support team for further assistance.\n\n" +
+               "Best regards,\n" +
+               "Your Company Name";
     }
 }
