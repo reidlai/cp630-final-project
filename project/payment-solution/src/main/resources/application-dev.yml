@@ -31,7 +31,8 @@ spring:
     
 logging:
   level:
-    root: INFO
+    root: DEBUG
+    cp630oc.paymentsolution: DEBUG
     org.springframework: INFO
     org.hibernate: ERROR
     com.zaxxer.hikari: ERROR

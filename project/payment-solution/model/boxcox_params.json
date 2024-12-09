@@ -1,0 +1,30 @@
+{
+  "longitude": {
+    "min_value": 2.313138037002779,
+    "lambda": 2.7309706367929074
+  },
+  "total_debt": {
+    "min_value": 0.0,
+    "lambda": 0.09605282124594437
+  },
+  "card_type_encoded": {
+    "min_value": 0.0,
+    "lambda": -1.7270218377227944
+  },
+  "merchant_city_encoded": {
+    "min_value": 0.003342259177914253,
+    "lambda": -0.0349086827106772
+  },
+  "merchant_mcc_code_encoded": {
+    "min_value": 0.0,
+    "lambda": -3.0910755649422845
+  },
+  "transaction_type_encoded": {
+    "min_value": 0.0,
+    "lambda": -3.906507501897982
+  },
+  "fraud_detected": {
+    "min_value": 0.0,
+    "lambda": 5.552734303955385
+  }
+}

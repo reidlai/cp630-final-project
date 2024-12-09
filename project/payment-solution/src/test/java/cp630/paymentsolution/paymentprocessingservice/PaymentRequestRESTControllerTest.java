@@ -56,15 +56,19 @@ public class PaymentRequestRESTControllerTest {
 
     @Test
     void createPaymentRequest_Success() {
+        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+
         // Arrange
         CreatePaymentRequestRequest request = new CreatePaymentRequestRequest();
         request.setCardNumber("1234567890123456");
         request.setTransactionAmount(100.0f);
-        request.setTransactionDatetime(OffsetDateTime.now(ZoneOffset.UTC));
+        request.setTransactionDatetime(now);;
         request.setMerchantCity("Test City");
         request.setMerchantState("TS");
         request.setMerchantZip("12345");
+        request.setMerchantId("1234"); 
         request.setMerchantMccCode("1234");
+        request.setTransactionType("Online Transaction"); 
 
         Customer customer = new Customer();
         customer.setId(1L);
@@ -78,19 +82,21 @@ public class PaymentRequestRESTControllerTest {
         Transaction mockTransaction = new Transaction();
         mockTransaction.setId(1L);
         mockTransaction.setCard(mockCard);
-        mockTransaction.setTransactionDatetime(new Date());
+        mockTransaction.setTransactionDatetime(Date.from(now.toInstant())); 
+
 
         TransactionState mockTransactionState = new TransactionState();
         mockTransactionState.setId(new TransactionStateId(1L, "PENDING"));
         mockTransactionState.setCreatedAt(new Date());
         mockTransactionState.setTransaction(mockTransaction);
+        
 
         // Mock
 
         when(cardRepository.findByCardNumber(request.getCardNumber())).thenReturn(mockCard);
         when(transactionRepository.save(any(Transaction.class))).thenReturn(mockTransaction);
         when(transactionStateRepository.save(any(TransactionState.class))).thenReturn(mockTransactionState);
-        when(modelInferenceService.detectFraud(mockCard, mockTransaction, false)).thenReturn(false);
+        when(modelInferenceService.fraudProbability(mockCard, mockTransaction, false)).thenReturn(0.1f);
 
         // Act
         Optional<String> xAuthorization = Optional.of("your-auth-token"); 
@@ -131,19 +137,30 @@ public class PaymentRequestRESTControllerTest {
     @Test
     void createPaymentRequest_TransactionError() {
         // Arrange
+        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+        
         CreatePaymentRequestRequest request = new CreatePaymentRequestRequest();
         request.setCardNumber("1234567890123456");
-
+        request.setTransactionAmount(100.0f);
+        request.setTransactionDatetime(now);
+        request.setMerchantCity("Test City");
+        request.setMerchantState("TS");
+        request.setMerchantZip("12345");
+        request.setMerchantMccCode("1234");
+        request.setMerchantId("1234");
+        request.setTransactionType("PURCHASE");
+    
         Card mockCard = new Card();
+        mockCard.setId(1L);
         when(cardRepository.findByCardNumber(request.getCardNumber())).thenReturn(mockCard);
         when(transactionRepository.save(any(Transaction.class))).thenThrow(new RuntimeException("Database error"));
-
+    
         // Act
-        Optional<String> xAuthorization = Optional.of("your-auth-token"); 
-        Optional<String> xApiKey = Optional.of("your-api-key"); 
-        Optional<String> xNotification = Optional.ofNullable(null);
+        Optional<String> xAuthorization = Optional.of("your-auth-token");
+        Optional<String> xApiKey = Optional.of("your-api-key");
+        Optional<String> xNotification = Optional.empty();
         ResponseEntity<CreatePaymentRequestResponse> response = controller.createPaymentRequest(request, xAuthorization, xApiKey, xNotification);
-
+    
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());

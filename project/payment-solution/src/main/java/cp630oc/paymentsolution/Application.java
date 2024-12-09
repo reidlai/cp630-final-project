@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  * The main class for the application.
  */
 @SpringBootApplication
+
 public class Application {
 
     /**

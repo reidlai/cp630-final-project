@@ -9,7 +9,6 @@ import cp630oc.paymentsolution.paymentrequeststore.entity.TransactionState;
 import cp630oc.paymentsolution.paymentrequeststore.entity.Card;
 import cp630oc.paymentsolution.paymentrequeststore.entity.Customer;
 import cp630oc.paymentsolution.paymentrequeststore.repository.TransactionRepository;
-import cp630oc.paymentsolution.paymentrequeststore.repository.CardRepository;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -21,9 +20,6 @@ public class NotificationService implements INotificationService {
 
     @Autowired
     private SMTPRelayService smtpRelayService;
-
-    @Autowired
-    private TransactionRepository transactionRepository;
 
     @Autowired
     private SpringTemplateEngine templateEngine;

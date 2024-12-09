@@ -58,10 +58,13 @@ services:
       POSTGRES_PASSWORD: "postgres"
       POSTGRES_DB: "postgres"
       POSTGRES_SCHEMA: "public"
-      MODEL_PATH: "/model/lightgbm_fraud_detector.onnx"
-      ENCODER_MAPPING_DIR: "/model" 
-    volumes:
-      - ./model:/model
+      MODEL_PATH: "/app/model/lightgbm_fraud_detector.onnx"
+      ENCODING_MAPPING_DIR: "/app/model"
+    # volumes:
+    #   - type: bind
+    #     source: ./model
+    #     target: /app/model
+    #     read_only: true
     depends_on:
       - db
   mageai:

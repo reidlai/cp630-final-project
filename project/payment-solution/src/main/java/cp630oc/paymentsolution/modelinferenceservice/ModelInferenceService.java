@@ -1,17 +1,19 @@
 package cp630oc.paymentsolution.modelinferenceservice;
 
 import ai.onnxruntime.*;
+import jakarta.annotation.PostConstruct;  // Add this
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.time.ZoneId;
 import java.util.*;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.couchbase.CouchbaseProperties.Io;
-import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,15 +23,6 @@ import cp630oc.paymentsolution.paymentrequeststore.entity.Transaction;
 import cp630oc.paymentsolution.paymentrequeststore.repository.TransactionRepository;
 import cp630oc.paymentsolution.paymentnotificationservice.NotificationService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.apache.parquet.hadoop.ParquetReader;
-import org.apache.parquet.example.data.simple.SimpleGroup;
-import org.apache.parquet.hadoop.example.GroupReadSupport;
-import org.apache.parquet.example.data.Group;
 
 @Service
 public class ModelInferenceService implements IModelInferenceService {
@@ -48,7 +41,7 @@ public class ModelInferenceService implements IModelInferenceService {
     @Value("${MODEL_PATH}")
     private String modelPath;
 
-    @Value("${ECONDING_MAPPING_DIR}")
+    @Value("${ENCODING_MAPPING_DIR}")
     private String encodingMappingDir;
 
     private static final int NUM_FEATURES = 9;
@@ -56,13 +49,13 @@ public class ModelInferenceService implements IModelInferenceService {
     private static String[] featureNames = {
         "merchant_city_encoded",
         "transaction_amount",
-        "merchant_mcc_code_encoded",
-        "credit_score",
         "latitude",
+        "merchant_mcc_code_encoded",
         "total_debt",
+        "credit_score",
+        "longitude",
         "transaction_day",
-        "birth_year",
-        "transaction_month"
+        "birth_year"
     };
  
     private Map<String, Map<String, Float>> encodingMappings = new HashMap<>();
@@ -74,41 +67,53 @@ public class ModelInferenceService implements IModelInferenceService {
         "merchant_city",
         "merchant_mcc_code",
         "transaction_error",
-        "transaction_type"
+        "transaction_type",
     };
 
     private Map<String, Map<String, Float>> scalarParameters = new HashMap<>();
 
-    private static String[] categoricalFeatureNames = {
-        "merchant_city_encoded",
-        "merchant_mcc_code_encoded"
-    };
-
-    private static String[] numericalFeatureNames = {
-        "transaction_amount",
-        "credit_score",
-        "latitude",
-        "total_debt",
-        "transaction_day",
-        "birth_year",
-        "transaction_month"
-    };
-
     private Map<String, Map<String, Float>> winsorBounds = new HashMap<>();
 
+    private Map<String, Map<String, Float>> boxcoxParams = new HashMap<>();
 
-    /**
-     * Default constructor
-     */
+    private static final String TAG = ModelInferenceService.class.getSimpleName();
+
     public ModelInferenceService() {
-        try {
-            loadEncodingMappings();
-            loadScalarParameters();
-            loadWinsorParams();
-        } catch (IOException e) {
-            logger.error("Failed to load encoding mappings: {}", e.getMessage());
-            throw new RuntimeException("Failed to load encoding mappings", e);
+
+    }
+
+    @PostConstruct
+    public void init() {
+        logger.debug("[{}] Initializing ModelInferenceService...", TAG);    
+
+        if (encodingMappingDir == null || encodingMappingDir.trim().isEmpty()) {
+            logger.debug("[{}] ENCODING_MAPPING_DIR environment variable is not set", TAG);
+            throw new IllegalStateException("ENCODING_MAPPING_DIR environment variable is not set");
         }
+
+        try {
+            logger.debug("[{}] Loading encoding mappings...", TAG);
+            loadEncodingMappings();
+            logger.debug("[{}] Loaded encoding mappings", TAG);
+
+            logger.debug("[{}] Loading scalar parameters...", TAG);
+            loadScalerParameters();
+            logger.debug("[{}] Loaded scalar parameters", TAG);
+
+            logger.debug("[{}] Loading winsorization parameters...", TAG);
+            loadWinsorParams();
+            logger.debug("[{}] Loaded winsorization parameters", TAG);
+
+            logger.debug("[{}] Loading Box-Cox parameters...", TAG);
+            loadBoxcoxParameters();
+            logger.debug("[{}] Loaded Box-Cox parameters", TAG);
+
+        } catch (IOException e) {
+            logger.error("Failed to initialize ModelInferenceService: {}", e.getMessage());
+            throw new RuntimeException("Failed to initialize ModelInferenceService", e);
+        }
+
+        logger.debug("[{}] ModelInferenceService initialized", TAG);
     }
 
     /**
@@ -117,13 +122,26 @@ public class ModelInferenceService implements IModelInferenceService {
     public OrtSession loadOnnxModel() {
         try {
             if (session == null) {
+                logger.debug("[{}] Getting ONNX environment...", TAG);
                 env = OrtEnvironment.getEnvironment();
+
+                // Add validation for modelPath
+                if (modelPath == null || modelPath.trim().isEmpty()) {
+                    throw new IllegalStateException("MODEL_PATH environment variable is not set");
+                }
+
+                logger.debug("[{}] Loading ONNX session options...", TAG);
                 OrtSession.SessionOptions sessionOptions = new OrtSession.SessionOptions();
+
+                logger.debug("[{}] Setting intra-op num threads to 1...", TAG);
                 sessionOptions.setIntraOpNumThreads(1);
+
                 return env.createSession(modelPath, sessionOptions);
             }
             return session;
         } catch (OrtException e) {
+
+            logger.error("[{}] Failed to load ONNX model: {}", TAG, e.getMessage());
             throw new RuntimeException("Failed to load ONNX model: " + e.getMessage());
         }
     }
@@ -135,89 +153,135 @@ public class ModelInferenceService implements IModelInferenceService {
      * @return boolean indicating if fraud is detected
      */
     @Override
-    public boolean detectFraud(Card card, Transaction transaction, boolean notificationEnabled) {
+    public float fraudProbability(Card card, Transaction transaction, boolean notificationEnabled) {
+        boolean fraudDetected = true;
+        if (card == null || transaction == null) {
+            throw new IllegalArgumentException("Card and Transaction cannot be null");
+        }
+    
         try {            
-            // Load model if not loaded
             if (session == null) {
+                logger.debug("[{}] Calling loadOnnxModel...", TAG);
                 session = loadOnnxModel();
             }
             
-            // Prepare input features
+            logger.debug("[{}] Extracting features...", TAG);
             float[] features = extractFeatures(card, transaction);
+            
+            logger.debug("[{}] Creating input tensor...", TAG);
             OnnxTensor inputTensor = OnnxTensor.createTensor(env, 
                 FloatBuffer.wrap(features), new long[]{1, features.length});
-
-            // Create input map
+    
             Map<String, OnnxTensor> inputs = new HashMap<>();
             inputs.put(session.getInputNames().iterator().next(), inputTensor);
+    
+            logger.debug("[{}] Running inference...", TAG);
 
-            // Run inference
-            try (OrtSession.Result results = session.run(inputs)) {
-                // Get output
-                float[] outputProbs = ((OnnxTensor) results.get(0)).getFloatBuffer().array();
-                
-                boolean fraudDetected = outputProbs[0] > 0.5;
 
-                // Update fraud_detected field in transaction
-                transaction.setFraudDetected(fraudDetected);
+            logger.debug("[{}] Running inference...", TAG);
+            OrtSession.Result results = session.run(inputs);
+
+            // Get the probabilities output
+            Optional<OnnxValue> probabilitiesOptional = results.get("probabilities");
             
-                transactionRepository.save(transaction);
-
-                if (fraudDetected && notificationEnabled) {
-                    // Call notification service
-                    try {
-                        notificationService.sendNotification(card, transaction);
-                    } catch (Exception e) {
-                        logger.error("Failed to send notification: " + e.getMessage());
-                        throw new RuntimeException("Failed to send notification", e);
-                    }
-                }
-
-                return fraudDetected;
+            if (!probabilitiesOptional.isPresent()) {
+                throw new Exception("Probabilities output not found in model results");
             }
 
-        } catch (OrtException e) {
+            OnnxValue probabilitiesOutput = probabilitiesOptional.get();
+
+            if (!(probabilitiesOutput instanceof OnnxSequence)) {
+                throw new RuntimeException("Expected OnnxSequence output but got: " + probabilitiesOutput.getClass());
+            }
+
+            OnnxSequence sequence = (OnnxSequence) probabilitiesOutput;
+
+            // Extract the sequence value (list of maps)
+            @SuppressWarnings("unchecked")
+            List<OnnxMap> probabilityList = (List<OnnxMap>) sequence.getValue();
+
+            // Get the first map (since we have one input, there will be one output)
+            OnnxMap probabilityMap = probabilityList.get(0);
+
+
+            // Get the probability for class 1 (fraud)
+            @SuppressWarnings("unchecked")
+            Map<Long, Float> probabilities = (Map<Long, Float>) probabilityMap.getValue();
+            float fraudProbability = probabilities.get(1L);
+        
+            return fraudProbability;
+
+        } catch (Exception e) {
+            logger.error("[{}] Error during fraud detection: {}", TAG, e.getMessage());
             throw new RuntimeException("Error during fraud detection: " + e.getMessage());
         }
     }
 
     private float[] extractFeatures(Card card, Transaction transaction) {
+
+        if (card == null || transaction == null) {
+            throw new IllegalArgumentException("Card and Transaction cannot be null");
+        }
+        if (card.getCustomer() == null) {
+            throw new IllegalArgumentException("Card must have associated Customer");
+        }
+
         float[] features = new float[NUM_FEATURES];
         
         // 1. merchant_city_encoded (mean: -2.944654, std: 1.889771)
-        features[0] = encodeValue("merchant_city", transaction.getMerchantCity());
+        logger.debug("[{}] Extracting merchant_city: {}", TAG, transaction.getMerchantCity());
+        features[0] = normalizeValue("merchant_city_encoded", encodeValue("merchant_city", transaction.getMerchantCity()));
         
         // 2. transaction_amount (mean: 6.788333, std: 0.567789)
+        logger.debug("[{}] Extracting transaction_amount: {}", TAG, transaction.getTransactionAmount());
         features[1] = normalizeValue("transaction_amount", transaction.getTransactionAmount());
         
-        // 3. merchant_mcc_code_encoded (mean: 0.105373, std: 0.111984)
-        features[2] = encodeValue("merchant_mcc_code", transaction.getMerchantMccCode());
-        
-        // 4. credit_score (mean: 3.410716, std: 0.893172)
-        features[3] = normalizeValue("credit_score", card.getCustomer().getCreditScore());
-        
-        // 5. latitude (mean: 3.168211, std: 0.921945)
-        features[4] = normalizeValue("latitude", card.getCustomer().getLatitude());
-        
-        // 6. total_debt (mean: 0.676236, std: 0.438641)
-        features[5] = normalizeValue("total_debt", card.getCustomer().getTotalDebt());
-        
-        // 7. transaction_day (mean: 1.669347, std: 0.981270)
-        features[6] = normalizeValue("transaction_day", transaction.getTransactionDatetime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getDayOfMonth());
-        
-        // 8. birth_year (mean: 3.046614, std: 0.947527)
-        features[7] = normalizeValue("birth_year", card.getCustomer().getBirthYear());
-        
-        // 9. transaction_month (mean: 1.604990, std: 1.000072)
-        features[8] = normalizeValue("transaction_month", transaction.getTransactionDatetime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getMonthValue());
+        // 3. latitude (mean: 0.000000, std: 1.000000)
+        logger.debug("[{}] Extracting latitude: {}", TAG, card.getCustomer().getLatitude());
+        features[2] = normalizeValue("latitude", card.getCustomer().getLatitude());
+
+        // 4. merchant_mcc_code_encoded (mean: -0.000000, std: 1.000000)
+        logger.debug("[{}] Extracting merchant_mcc_code: {}", TAG, transaction.getMerchantMccCode());
+        features[3] = normalizeValue("merchant_mcc_code_encoded", encodeValue("merchant_mcc_code", transaction.getMerchantMccCode()));
+
+        // 5. total_debt (mean: 0.000000, std: 1.000000)
+        logger.debug("[{}] Extracting total_debt: {}", TAG, card.getCustomer().getTotalDebt());
+        features[4] = normalizeValue("total_debt", card.getCustomer().getTotalDebt());
+
+        // 6. credit_score (mean: 0.000000, std: 1.000000)
+        logger.debug("[{}] Extracting credit_score: {}", TAG, card.getCustomer().getCreditScore());
+        features[5] = normalizeValue("credit_score", card.getCustomer().getCreditScore());
+
+        // 7. longitude (mean: 0.000000, std: 1.000000)
+        logger.debug("[{}] Extracting longitude: {}", TAG, card.getCustomer().getLongitude());
+        features[6] = normalizeValue("longitude", card.getCustomer().getLongitude());
+
+        // 8. transaction_day (mean: 0.000000, std: 1.000000)
+        logger.debug("[{}] Extracting transaction_day: {}", TAG, transaction.getTransactionDatetime().toInstant().atZone(ZoneId.systemDefault()).getDayOfMonth());
+        features[7] = normalizeValue("transaction_day", transaction.getTransactionDatetime().toInstant().atZone(ZoneId.systemDefault()).getDayOfMonth());
+
+        // 9. birth_year (mean: 0.000000, std: 1.000000)
+        logger.debug("[{}] Extracting birth_year: {}", TAG, card.getCustomer().getBirthYear());
+        features[8] = normalizeValue("birth_year", card.getCustomer().getBirthYear());
         
         // Winsorize features
         for (int i = 0; i < NUM_FEATURES; i++) {
             String featureName = featureNames[i];
+
+            logger.debug("[{}] Winsorizing feature: {}", TAG, featureName);
             float lowerBound = winsorBounds.get(featureName).get("lower_bound");
             float upperBound = winsorBounds.get(featureName).get("upper_bound");
             features[i] = Math.min(Math.max(features[i], lowerBound), upperBound);
+            logger.debug("[{}] Winsorized feature: {}", TAG, features[i]);
         }
+
+        // Apply Box-Cox transformation to numeric features
+        for (int i = 0; i < featureNames.length; i++) {
+            logger.debug("[{}] Applying Box-Cox transformation to feature: {}", TAG, featureNames[i]);
+            features[i] = applyBoxCox(featureNames[i], features[i]);
+            logger.debug("[{}] Box-Cox transformed feature: {}", TAG, features[i]);
+        }
+
         return features;
     }
 
@@ -234,30 +298,43 @@ public class ModelInferenceService implements IModelInferenceService {
     
     private void loadEncodingMappings() throws IOException {
         try {
+            ObjectMapper mapper = new ObjectMapper();
             for (String encoderName : encoderNames) {
 
+                logger.debug("[{}] Loading encoding mappings for {}...", TAG, encoderName);
+
                 // Initialize the map for this encoder if it doesn't exist
+                logger.debug("[{}] Initializing encoding mappings for {}...", TAG, encoderName);
                 encodingMappings.putIfAbsent(encoderName, new HashMap<>());
-                
-                // Create file and path
-                File parquetFile = new File(encodingMappingDir + "/" + encoderName + "_encoded.parquet");
-                Path path = new Path(parquetFile.getAbsolutePath());
-                
-                // Configure and create reader
-                Configuration conf = new Configuration();
-                ParquetReader<Group> reader = ParquetReader.builder(new GroupReadSupport(), path)
-                    .withConf(conf)
-                    .build();
-        
-                // Read records
-                Group group;
-                while ((group = reader.read()) != null) {
-                    String recordKey = group.getString("key", 0);
-                    float recordValue = group.getFloat("value", 0);
-                    encodingMappings.get(encoderName).put(recordKey, recordValue);
+
+                File jsonFile = new File(encodingMappingDir, encoderName + "_encoded.json");
+                logger.debug("[{}] Loading encoding mappings from {}...", TAG, jsonFile.getAbsolutePath());
+                if (!jsonFile.exists()) {
+                    logger.debug("[{}] File not found: {}", TAG, jsonFile.getAbsolutePath());
+                    throw new FileNotFoundException("File not found: " + jsonFile.getAbsolutePath());
                 }
-        
-                reader.close();
+                logger.debug("[{}] File found: {}", TAG, jsonFile.getAbsolutePath());
+
+                try {
+                    // Read the JSON array
+                    logger.debug("[{}] Reading JSON array...", TAG);
+                    JsonNode arrayNode = mapper.readTree(jsonFile);
+                    if (arrayNode.isArray()) {
+                        logger.debug("[{}] JSON array found: size {}", TAG, arrayNode.size());
+                        for (JsonNode node : arrayNode) {
+                            String key = node.get(encoderName).asText();
+                            float value = node.get(encoderName + "_encoded").floatValue();
+                            logger.debug("[{}] Adding key-value pair: {} -> {}", TAG, key, value);
+                            encodingMappings.get(encoderName).put(key, value);
+                        }
+                        logger.debug("[{}] Encoding mappings loaded for {}", TAG, encoderName);
+                    } else {
+                        logger.debug("[{}] JSON array not found", TAG);
+                    }
+                } catch (IOException e) {
+                    logger.error("Failed to load encoding mappings for {}: {}", encoderName, e.getMessage());
+                    throw e;
+                }
             } 
             
         } catch (IOException e) {
@@ -266,11 +343,11 @@ public class ModelInferenceService implements IModelInferenceService {
         }
     }
 
-    private void loadScalarParameters() throws IOException {
+    private void loadScalerParameters() throws IOException {
  
         try {
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(new File(encodingMappingDir + "/scalar_params.json"));
+            JsonNode root = mapper.readTree(new File(encodingMappingDir + "/scaler_params.json"));
             
             // Load parameters from JSON
             String[] columns = mapper.convertValue(root.get("columns"), String[].class);
@@ -285,7 +362,7 @@ public class ModelInferenceService implements IModelInferenceService {
             }
             
         } catch (IOException e) {
-            logger.error("Failed to load scalar parameters: {}", e.getMessage());
+            logger.error("Failed to load scaler parameters: {}", e.getMessage());
             throw e;
         }
     }
@@ -308,6 +385,49 @@ public class ModelInferenceService implements IModelInferenceService {
         } catch (IOException e) {
             logger.error("Failed to load winsorization parameters: {}", e.getMessage());
             throw e;
+        }
+    }
+
+    private void loadBoxcoxParameters() throws IOException {
+ 
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(new File(encodingMappingDir + "/boxcox_params.json"));
+            
+            root.fields().forEachRemaining(entry -> {
+                String feature = entry.getKey();
+                JsonNode boxcoxNode = entry.getValue();
+                
+                Map<String, Float> boxcoxParam = new HashMap<>();
+                boxcoxParam.put("min_value", boxcoxNode.get("min_value").floatValue());
+                boxcoxParam.put("lambda", boxcoxNode.get("lambda").floatValue());
+                
+                boxcoxParams.put(feature, boxcoxParam);
+            });
+            
+        } catch (IOException e) {
+            logger.error("Failed to load scalar parameters: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    private float applyBoxCox(String featureName, float value) {
+        Map<String, Float> params = boxcoxParams.get(featureName);
+        if (params == null) {
+            return value;
+        }
+    
+        // Shift value if needed
+        float shiftedValue = value;
+        if (params.get("min_value").floatValue() <= 0) {
+            shiftedValue = value - params.get("min_value").floatValue() + 1;
+        }
+    
+        // Apply Box-Cox transformation
+        if (Math.abs(params.get("lambda").floatValue()) < 1e-10) {
+            return (float) Math.log(shiftedValue);
+        } else {
+            return (float) ((Math.pow(shiftedValue, params.get("lambda").floatValue()) - 1) / params.get("lambda").floatValue());
         }
     }
 }

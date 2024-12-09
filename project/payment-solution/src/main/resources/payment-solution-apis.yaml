@@ -144,6 +144,13 @@ components:
         transactionError:
           type: string
           description: Error message if the transaction failed  
+        fraudProbability:
+          type: number
+          format: float
+          description: Probability of fraud
+        fraudDetected:
+          type: boolean
+          description: Indicates if fraud was detected
         transactionStatus:
           type: string
           description: Status of the transaction (e.g., approved, declined)

@@ -25,9 +25,23 @@ dependencies {
     implementation 'com.microsoft.onnxruntime:onnxruntime:1.16.3'
 
     // Spring Boot starters
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation('org.springframework.boot:spring-boot-starter-web')
+    // implementation('org.springframework.boot:spring-boot-starter-web') {
+    //     exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    // }
+
+    implementation('org.springframework.boot:spring-boot-starter-mail')
+    // implementation('org.springframework.boot:spring-boot-starter-mail') {
+    //     exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    // }
+
+    implementation('org.springframework.boot:spring-boot-starter-data-jpa')
+    // implementation('org.springframework.boot:spring-boot-starter-data-jpa') {
+    //     exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    // }
+    
+    implementation 'ch.qos.logback:logback-classic'
+    implementation 'org.slf4j:slf4j-api'
 
     // JPA
     implementation 'org.hibernate.orm:hibernate-core:6.2.13.Final'
@@ -45,12 +59,13 @@ dependencies {
 
     // ONNIX
     implementation 'com.microsoft.onnxruntime:onnxruntime:1.16.3'
-
-    // Parquet File
-    implementation 'org.apache.parquet:parquet-common:1.12.3'
-    implementation 'org.apache.parquet:parquet-hadoop:1.12.3'
-    implementation 'org.apache.hadoop:hadoop-common:3.3.6'
-    implementation 'org.apache.parquet:parquet-avro:1.12.3'
+    
+    // Parquet reading
+    // implementation 'org.apache.parquet:parquet-common:1.12.3'
+    // implementation 'org.apache.parquet:parquet-avro:1.12.3'
+    // implementation 'org.apache.arrow:arrow-vector:12.0.1'
+    // implementation 'org.apache.arrow:arrow-memory-netty:12.0.1'
+    // implementation 'org.apache.arrow:arrow-dataset:12.0.1'
 
     // Test dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
