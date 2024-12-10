@@ -44,6 +44,7 @@ import java.util.Set;
  * by OpenAPI generator.
  */
 @RestController
+@CrossOrigin(origins = "*")
 public class PaymentRequestRESTController implements PaymentRequestApi, PaymentRequestsApi, PaymentRequestStatusApi, PaymentRequestStatusesApi {
 
     private static final Logger logger = LoggerFactory.getLogger(PaymentRequestRESTController.class);

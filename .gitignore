@@ -32,3 +32,5 @@ project/mlops_pipeline/data/winsorized_transactions.parquet
 project/mlops_pipeline/data/feature_importance.parquet
 project/payment-solution/.gradle
 project/payment-solution/build
+project/fraud-detection-portal/.svelte-kit
+project/fraud-detection-portal/node_modules
