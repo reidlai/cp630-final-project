@@ -20,4 +20,7 @@ public interface TransactionStateRepository extends JpaRepository<TransactionSta
      */
     @Query("SELECT ts FROM TransactionState ts WHERE ts.id.id = :id AND ts.deletedAt IS NULL ORDER BY ts.createdAt DESC")
     TransactionState findLatestStateById(@Param("id") Long id);
+
+    @Query("SELECT ts FROM TransactionState ts WHERE ts.id.id = :id AND ts.id.state = :state ORDER BY ts.createdAt DESC")
+    TransactionState findLatestStateByIdAndState(@Param("id") Long id, @Param("state") String state);
 }

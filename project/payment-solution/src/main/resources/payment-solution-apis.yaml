@@ -6,13 +6,73 @@ servers:
   - url: http://localhost:8080
 paths:
   /payment-request:
+    get:
+      tags:
+        - PaymentRequest
+      operationId: getPaymentRequestById
+      summary: Get a payment request by ID
+      parameters:
+        - name: Authorization
+          in: header
+          required: false
+          description: Authorization token
+          schema:
+            type: string
+        - name: X-Api-Key
+          in: header
+          required: false
+          description: API key for authentication
+          schema:
+            type: string
+        - name: id
+          in: query
+          required: true
+          description: Transaction ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRequest'
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174000"
+                transactionTimestamp: "2024-12-06T03:18:00Z"
+                transactionAmount: 100.0
+                transactionType: "PURCHASE"
+                merchantId: "123e4567-e89b-12d3-a456-426614174000"
+                merchantCity: "San Francisco"
+                merchantState: "CA"
+                merchantZip: "94105"
+                merchantMccCode: "5411"
+                fraudDetected: false
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
     post:
       tags:
         - PaymentRequest
       operationId: createPaymentRequest
       summary: Create a payment request
       parameters:
-        - name: X-Authorization
+        - name: Authorization
           in: header
           required: false
           description: Authorization token
@@ -49,6 +109,259 @@ paths:
                 transactionStatus: "APPROVED"
         '400':
           description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /payment-requests:
+    get:
+      tags:
+        - PaymentRequests
+      operationId: getPaymentRequestsByCardNumber
+      summary: Get a payment request by card number
+      parameters:
+        - name: Authorization
+          in: header
+          required: false
+          description: Authorization token
+          schema:
+            type: string
+        - name: X-Api-Key
+          in: header
+          required: false
+          description: API key for authentication
+          schema:
+            type: string
+        - name: card_number
+          in: query
+          required: true
+          description: Card number
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentRequest'
+              example:
+                - id: "123e4567-e89b-12d3-a456-426614174000"
+                  transactionTimestamp: "2024-12-06T03:18:00Z"
+                  transactionAmount: 100.0
+                  transactionType: "PURCHASE"
+                  merchantId: "123e4567-e89b-12d3-a456-426614174000"
+                  merchantCity: "San Francisco"
+                  merchantState: "CA"
+                  merchantZip: "94105"
+                  merchantMccCode: "5411"
+                  fraudDetected: false
+                - id: "123e4567-e89b-12d3-a456-426614174001"
+                  transactionTimestamp: "2024-12-06T03:18:00Z"
+                  transactionAmount: 200.0
+                  transactionType: "REFUND"
+                  merchantId: "123e4567-e89b-12d3-a456-426614174001"
+                  merchantCity: "San Francisco"
+                  merchantState: "CA"
+                  merchantZip: "94105"
+                  merchantMccCode: "5411"
+                  fraudDetected: true
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /payment-request-status:
+    get:
+      tags:
+        - PaymentRequestStatus
+      operationId: getPaymentRequestStatusById
+      summary: Get the status of a payment request by ID
+      parameters:
+        - name: Authorization
+          in: header
+          required: false
+          description: Authorization token
+          schema:
+            type: string
+        - name: X-Api-Key
+          in: header
+          required: false
+          description: API key for authentication
+          schema:
+            type: string
+        - name: id
+          in: query
+          required: true
+          description: Transaction ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRequestStatus'
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174000"
+                state: "APPROVED"
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    put:
+      tags:
+        - PaymentRequestStatus
+      operationId: updatePaymentRequestStatusById
+      summary: Update the status of a payment request by ID
+      parameters:
+        - name: Authorization
+          in: header
+          required: false
+          description: Authorization token
+          schema:
+            type: string
+        - name: X-Api-Key
+          in: header
+          required: false
+          description: API key for authentication
+          schema:
+            type: string
+        - name: X-Notification
+          in: header
+          required: false
+          description: Notification header for additional context
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - state
+              properties:
+                id: 
+                  type: string
+                  description: Unique identifier for the transaction
+                state:
+                  type: string
+                  description: Status of the transaction (e.g., approved, declined)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRequestStatus'
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174000"
+                state: "APPROVED"
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    
+  /payment-request-statuses:
+    get:
+      tags:
+        - PaymentRequestStatuses
+      operationId: getPaymentRequestStatusesById
+      summary: Get the status of all payment requests
+      parameters:
+        - name: Authorization
+          in: header
+          required: false
+          description: Authorization token
+          schema:
+            type: string
+        - name: X-Api-Key
+          in: header
+          required: false
+          description: API key for authentication
+          schema:
+            type: string
+        - name: id
+          in: query
+          required: true
+          description: Transaction ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentRequestStatus'
+              example:
+                - id: "123e4567-e89b-12d3-a456-426614174000"
+                  state: "APPROVED"
+                - id: "123e4567-e89b-12d3-a456-426614174001"
+                  state: "DECLINED"
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Not Found
           content:
             application/problem+json:
               schema:
@@ -151,6 +464,67 @@ components:
           type: string
           description: Status of the transaction (e.g., approved, declined)
 
+    PaymentRequest: 
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the transaction
+        fraudDetected:
+          type: boolean
+          description: Indicates if fraud was detected
+        merchantCity:
+          type: string
+          description: City where the merchant is located
+        merchantId:
+          type: string
+          description: Unique identifier for the merchant
+        merchantMccCode:
+          type: string
+          description: Merchant Category Code (MCC)
+        merchantState:
+          type: string
+          description: State where the merchant is located
+        merchantZip:
+          type: string
+          description: ZIP code of the merchant location
+        transactionAmount:
+          type: number
+          format: float
+          description: Amount of the transaction
+        transactionDatetime:
+          type: string
+          format: date-time
+          description: Date and time of the transaction
+        transactionError:
+          type: string
+          description: Error message if the transaction failed
+        transactionType:
+          type: string
+          description: Type of transaction (e.g., purchase, refund)
+
+    PaymentRequestStatus:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the transaction
+        state:
+          type: string
+          description: Status of the transaction (e.g., approved, declined)
+        createdAt:
+          type: string
+          format: date-time
+          description: Date and time of the last status update
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date and time of the last status change 
+        deletedAt:
+          type: string
+          format: date-time
+          description: Date and time of the last status deletion
+        
     ProblemDetail:
       type: object
       properties:

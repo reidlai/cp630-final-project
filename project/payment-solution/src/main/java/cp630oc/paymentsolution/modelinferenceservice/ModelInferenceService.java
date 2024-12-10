@@ -213,33 +213,8 @@ public class ModelInferenceService implements IModelInferenceService {
             // Close the results
             results.close();
 
-            // Update the transaction with the fraud detection result
-            transaction.setFraudDetected(fraudDetected);
-
-            // Save the transaction state
-            TransactionState currentState = transactionStateRepository.findLatestStateById(transaction.getId());
-            if (currentState != null) {
-                currentState.setDeletedAt(new Date());
-                TransactionState newState = new TransactionState();
-                TransactionStateId newStateId = new TransactionStateId();
-                newStateId.setId(transaction.getId());
-                newState.setId(newStateId);
-                newState.setCreatedAt(new Date());
-                newState.setUpdatedAt(new Date());
-
-                if (fraudDetected) {
-                    newStateId.setState("ONHOLD");
-                } else {
-                    newStateId.setState("ACCEPTED");
-                }
-                TransactionState savedTransactionState = transactionStateRepository.save(newState);
-                if (savedTransactionState == null) {
-                    logger.error("[{}] Failed to save transaction state", TAG);
-                    throw new Exception("Failed to save transaction state");
-                }
-                transactionStateRepository.flush();
-                transaction.getTransactionStates().add(savedTransactionState);
-            }
+            // Update the transaction status
+            updateTransactionStatus(transaction, fraudDetected);
 
             if (notificationEnabled) {
                 logger.debug("[{}] Calling sendNotification...", TAG);
@@ -302,38 +277,44 @@ public class ModelInferenceService implements IModelInferenceService {
         logger.debug("[{}] Extracting birth_year: {}", TAG, card.getCustomer().getBirthYear());
         features[8] = card.getCustomer().getBirthYear();
         
-        // // Standardize features
-        // for (int i = 0; i < NUM_FEATURES; i++) {
-        //     String featureName = featureNames[i];
-        //     logger.debug("[{}] Standardizing feature: {}", TAG, featureName);
-        //     features[i] = normalizeValue(featureName, features[i]);
-        //     logger.debug("[{}] Standardized feature: {}", TAG, features[i]);
-        // }
+        // Standardize features
+        for (int i = 0; i < NUM_FEATURES; i++) {
+            String featureName = featureNames[i];
+            logger.debug("[{}] Standardizing feature: {}", TAG, featureName);
+            features[i] = normalizeValue(featureName, features[i]);
+            logger.debug("[{}] Standardized feature: {}", TAG, features[i]);
+        }
 
-        // // Winsorize features
-        // for (int i = 0; i < NUM_FEATURES; i++) {
-        //     String featureName = featureNames[i];
+        // Winsorize features
+        for (int i = 0; i < NUM_FEATURES; i++) {
+            String featureName = featureNames[i];
 
-        //     logger.debug("[{}] Winsorizing feature: {}", TAG, featureName);
-        //     float lowerBound = winsorBounds.get(featureName).get("lower_bound");
-        //     float upperBound = winsorBounds.get(featureName).get("upper_bound");
-        //     features[i] = Math.min(Math.max(features[i], lowerBound), upperBound);
-        //     logger.debug("[{}] Winsorized feature: {}", TAG, features[i]);
-        // }
+            logger.debug("[{}] Winsorizing feature: {}", TAG, featureName);
+            float lowerBound = winsorBounds.get(featureName).get("lower_bound");
+            float upperBound = winsorBounds.get(featureName).get("upper_bound");
+            features[i] = Math.min(Math.max(features[i], lowerBound), upperBound);
+            logger.debug("[{}] Winsorized feature: {}", TAG, features[i]);
+        }
 
-        // // Apply Box-Cox transformation to numeric features
-        // for (int i = 0; i < featureNames.length; i++) {
-        //     logger.debug("[{}] Applying Box-Cox transformation to feature: {}", TAG, featureNames[i]);
-        //     features[i] = applyBoxCox(featureNames[i], features[i]);
-        //     logger.debug("[{}] Box-Cox transformed feature: {}", TAG, features[i]);
-        // }
+        // Apply Box-Cox transformation to numeric features
+        for (int i = 0; i < featureNames.length; i++) {
+            logger.debug("[{}] Applying Box-Cox transformation to feature: {}", TAG, featureNames[i]);
+            features[i] = applyBoxCox(featureNames[i], features[i]);
+            logger.debug("[{}] Box-Cox transformed feature: {}", TAG, features[i]);
+        }
 
         return features;
     }
 
     // Feature normalization methods
     private float encodeValue(String key, String value) {
-        return encodingMappings.get(key).get(value).floatValue();
+        // return encodingMappings.get(key).get(value).floatValue();
+        Map<String, Float> encoding = encodingMappings.get(key);
+        if (encoding == null || !encoding.containsKey(value)) {
+            return -1.0f;
+        } else {
+            return encoding.get(value).floatValue();
+        }
     }
 
     
@@ -478,5 +459,60 @@ public class ModelInferenceService implements IModelInferenceService {
         } else {
             return (float) ((Math.pow(shiftedValue, params.get("lambda").floatValue()) - 1) / params.get("lambda").floatValue());
         }
+    }
+
+    private void updateTransactionStatus(Transaction transaction, boolean fraudDetected) throws Exception { 
+        // Update the transaction with the fraud detection result
+        logger.debug("[{}] Updating transaction status: fraudDetected={}", TAG, fraudDetected);
+        transaction.setFraudDetected(fraudDetected);
+
+        // Save the transaction state
+        logger.debug("[{}] Getting transaction state...", TAG);
+        Set<TransactionState> transactionStats =  transaction.getTransactionStates();
+        logger.debug("[{}] Found {} transaction states", TAG, transactionStats.size());
+
+        logger.debug("[{}] Finding latest transaction state...", TAG);
+        TransactionState currentState = null;
+        for (TransactionState state : transactionStats) {
+            if (state.getId().getState().equals("PENDING")) {
+                currentState = state;
+                break;
+            }
+        }
+
+        if (currentState != null) {
+            logger.debug("[{}] Found latest transaction state: {}", TAG, currentState.getId().getState());
+
+            logger.debug("[{}] Updating latest transaction state...", TAG);
+            currentState.setDeletedAt(new Date());
+            TransactionState obsoletedState = transactionStateRepository.save(currentState);
+            logger.debug("[{}] obsolete state: {}", TAG, obsoletedState.getId().getState());
+            transactionStateRepository.flush();
+            logger.debug("[{}] obsolete state flushed", TAG);
+
+            TransactionState newState = new TransactionState();
+            TransactionStateId newStateId = new TransactionStateId();
+            newStateId.setId(transaction.getId());
+            newState.setId(newStateId);
+            newState.setCreatedAt(new Date());
+            newState.setUpdatedAt(new Date());
+
+            if (fraudDetected) {
+                newStateId.setState("ONHOLD");
+            } else {
+                newStateId.setState("ACCEPTED");
+            }
+            TransactionState savedTransactionState = transactionStateRepository.save(newState);
+            if (savedTransactionState == null) {
+                logger.error("[{}] Failed to save transaction state", TAG);
+                throw new Exception("Failed to save transaction state");
+            }
+            transactionStateRepository.flush();
+            transaction.getTransactionStates().add(savedTransactionState);
+        } else {
+            logger.error("[{}] Failed to find latest transaction state", TAG);
+            throw new Exception("Failed to find latest transaction state");
+        }
+
     }
 }

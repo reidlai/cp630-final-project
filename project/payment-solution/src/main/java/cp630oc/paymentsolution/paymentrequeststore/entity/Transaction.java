@@ -8,7 +8,9 @@ import java.util.Set;
  * The transaction entity.
  */
 @Entity
-@Table(name = "transactions")
+@Table(name = "transactions", indexes = {
+    @Index(name = "idx_customer_card", columnList = "customer_id, card_index")
+})
 public class Transaction {
 
     @Id

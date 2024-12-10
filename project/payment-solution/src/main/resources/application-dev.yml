@@ -2,6 +2,13 @@ server:
   port: "8080"
   # servlet:
   #   context-path: /v1/payment-solution
+  tomcat:
+    connection-timeout: 60000
+    keep-alive-timeout: 60000
+    max-keep-alive-requests: 100
+  servlet:
+    session:
+      timeout: 60m
 
 spring:
   config:
@@ -33,6 +40,9 @@ spring:
     default-encoding: UTF-8 
   main: 
     debug: true
+  mvc:
+    async:
+      request-timeout: 60000
 
     
 logging:

@@ -22,7 +22,8 @@ import java.util.List;
  */
 @Entity
 @Table(name = "cards", indexes = {
-    @Index(name = "idx_customer_id", columnList = "customer_id")
+    @Index(name = "idx_customer_id", columnList = "customer_id"),
+    @Index(name = "idx_card_number", columnList = "card_number")
 })
 public class Card {
 
