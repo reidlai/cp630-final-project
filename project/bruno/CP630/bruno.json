@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "CP630",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

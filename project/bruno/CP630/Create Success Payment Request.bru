@@ -1,0 +1,43 @@
+meta {
+  name: Create Success Payment Request
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/payment-request
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+  Authorization: Bearer Token 1234567890
+  X-Api-Key: 1234567890
+  X-Notification: true
+  Connection: keep-alive
+  Keep-Alive: timeout=60
+}
+
+body:json {
+    {
+      "transactionDatetime": "2024-12-08T15:15:15.265Z",
+      "transactionAmount": 146,
+      "transactionType": "Chip Transaction",
+      "merchantId": "-112121233619748226",
+      "merchantCity": "Rome",
+      "merchantMccCode": "3509",
+      "cardNumber": "5476407228285230",
+      "cvvCode": "688",
+      "cardExpirationDate": "2022-11-01",
+      "cardHolderFirstName": "Milani",
+      "cardHolderLastName": "Merkel",
+      "cardHolderBillingAddress": "Unit 87, 524 Ocean Drive",
+      "cardHolderBillingCity": "Houston",
+      "cardHolderBillingState": "TX",
+      "cardHolderBillingZip": "77056",
+      "cardHolderBillingCountry": "United States"
+    }
+  
+}

@@ -1,0 +1,22 @@
+meta {
+  name: Get Payment Request By ID
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://localhost:8080/payment-request?id=48773890
+  body: none
+  auth: none
+}
+
+params:query {
+  id: 48773890
+}
+
+headers {
+  Authorization: Bearer Token 123456789
+  X-Api-Key: 123456789
+  Connection: keep-alive
+  Keep-Alive: timeout=60
+}
