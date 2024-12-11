@@ -1,0 +1,48 @@
+@startuml
+
+participant "Payment Gateway" as PG
+participant "Payment Processing Service" as PPS
+participant "ML Inferrence Service" as MLIS
+participant "Payment Notification Service" as PNS
+participant "Database" as DB
+participant "Mail Server" as MS
+participant "Security Officer" as SO
+participant "Fraud Detection Portal" as FDP
+
+PG -> PPS: POST /payment-request
+PPS -> DB: Save Payment Request
+DB -> PPS: success
+PPS -> MLIS: detectFraud(card, transaction)
+MLIS -> DB: Update Fraud Detection Status after detection process
+DB -> MLIS: success
+MLIS -> PNS: sendNotification(card, transaction, fraudDetected)
+PNS -> DB: Fetch email address from DB using card and transaction ID
+DB -> PNS: email address
+alt "Fraud Detected"
+    PNS -> MS: Send on-hold Email to Customer
+    PNS -> MLIS: success
+    MLIS -> PPS: fraud detected
+    PPS -> PG: REJECTED
+else "Fraud Not Detected"
+    PNS -> MS: Send accepted Email to Customer
+    PNS -> MLIS: success
+    MLIS -> PPS: fraud NOT detected
+    PPS -> PG: ACCEPTED
+end
+
+SO -> FDP: Search the on-hold transaction by card numbe when receiving customer call
+FDP -> PPS: Fetch transactions
+PPS -> DB: Fetch Data from DB
+DB -> PPS: transaction data
+PPS -> FDP: Return transaction list
+FDP -> SO: Show related records to the Security Officer
+opt "Security Officer accepts customer explanation"
+    SO -> FDP: Release the transaction
+    FDP -> DB: Update transaction status
+    DB -> FDP: success
+    FDP -> MS: Send accepted Email to Customer
+    MS -> FDP: success
+    FDP -> SO: success
+end
+
+@enduml

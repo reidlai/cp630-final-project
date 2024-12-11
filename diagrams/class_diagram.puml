@@ -1,0 +1,77 @@
+@startuml
+
+package cp630.paymentsolution.paymentprocessingservice.api <<OpenAPI Generated>> {
+  interface PaymentRequestApi {
+    {abstract} +createPaymentRequest()
+    {abstract} +getPaymentRequestById()
+  }
+  interface PaymentRequestsApi {
+    {abstract} +getPaymentRequestsByCardNumber()
+    {abstract} +updatePaymentRequestStatusById()
+  }
+  interface PaymentRequestStatusApi {
+    {abstract} +getPaymentRequestStatusById
+  }
+  interface PaymentRequestStatusesApi {}
+}
+
+package cp630.paymentsolution.paymentprocessingservice  {
+    class PaymentRequestRESTController <<@RestController>> {
+    }
+}
+
+package cp630.paymentsolution.modelinferrenceservice  {
+    class ModelInferenceService <<@Service>> {
+      +detectFraud()
+    }
+}
+
+package cp630.paymentsolution.paymentnotificationservice  {
+    class PaymentNotificationService <<@Service>> {
+      +sendNotification()
+    }
+
+    class SMTPRelayService <<@Service>> {
+      +sendEmail()
+    }
+}
+
+package cp630.paymentsolution.paymentrequeststore.entity  {
+    entity Customer <<@Entity>> {}
+    entity Card <<@Entity>> {}
+    entity Transaction <<@Entity>> {}
+    entity TransactionState <<@Entity>> {}
+    entity TransactionStateId <<@Embeddable>> {}
+}
+
+package cp630.paymentsolution.paymentrequeststore.repository  {
+    interface CustomerRepository <<@Repository>> {}
+    interface CardRepository <<@Repository>> {
+      {abstract} +findByCardNumber()
+    }
+    interface TransactionRepository <<@Repository>> {
+      {abstract} +findAllByCard(Card card)
+    }
+    interface TransactionStateRepository <<@Repository>> {
+      {abstract} +findLatestStateById()
+      {abstract} +findLatestStateByIdAndState
+    }
+}
+
+PaymentRequestApi <|-- PaymentRequestRESTController
+PaymentRequestsApi <|-- PaymentRequestRESTController
+PaymentRequestStatusApi <|-- PaymentRequestRESTController
+PaymentRequestStatusesApi <|-- PaymentRequestRESTController
+
+PaymentRequestRESTController --> ModelInferenceService
+PaymentRequestRESTController --> CardRepository
+PaymentRequestRESTController --> TransactionRepository
+PaymentRequestRESTController --> TransactionStateRepository
+
+ModelInferenceService --> PaymentNotificationService
+ModelInferenceService --> TransactionStateRepository
+
+PaymentNotificationService --> SMTPRelayService
+
+
+@enduml
