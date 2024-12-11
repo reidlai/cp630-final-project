@@ -44,7 +44,27 @@ import java.util.Set;
  * by OpenAPI generator.
  */
 @RestController
-@CrossOrigin(origins = "*")
+@CrossOrigin(
+    origins = "*",
+    allowedHeaders = {
+        "Content-Type",
+        "Accept",
+        "Origin",
+        "X-Notification",
+        "Authorization"
+    },
+    methods = {
+        RequestMethod.GET,
+        RequestMethod.POST,
+        RequestMethod.PUT,
+        RequestMethod.DELETE,
+        RequestMethod.OPTIONS
+    },
+    exposedHeaders = {
+        "Access-Control-Allow-Origin",
+        "Access-Control-Allow-Credentials"
+    }
+)
 public class PaymentRequestRESTController implements PaymentRequestApi, PaymentRequestsApi, PaymentRequestStatusApi, PaymentRequestStatusesApi {
 
     private static final Logger logger = LoggerFactory.getLogger(PaymentRequestRESTController.class);
@@ -372,7 +392,7 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
      * @return The response entity.
      */
     @Override
-    public ResponseEntity<List<PaymentRequestStatus>> getPaymentRequestStatusesById(String id, Optional<String> xAuthorization, Optional<String> xApiKey) {
+    public ResponseEntity<List<PaymentRequestStatus>> getPaymentRequestStatusesById(String id, Optional<String> Authorization, Optional<String> xApiKey) {
         try {
 
             // Fetch transaction
@@ -414,7 +434,7 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
      * @return The response entity.
      */
     @Override
-    public ResponseEntity<PaymentRequestStatus> getPaymentRequestStatusById(String id, Optional<String> xAuthorization, Optional<String> xApiKey) {
+    public ResponseEntity<PaymentRequestStatus> getPaymentRequestStatusById(String id, Optional<String> Authorization, Optional<String> xApiKey) {
         try {
 
             // Fetch transaction

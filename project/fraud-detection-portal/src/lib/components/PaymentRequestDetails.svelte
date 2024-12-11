@@ -2,6 +2,8 @@
     import { onMount } from 'svelte';
     import type { PaymentRequest } from '$lib/types';
     
+    import { getTransactionDetail } from '$lib/api';
+
     export let transactionId: string;
 
     let transaction: PaymentRequest | null = null;
@@ -10,7 +12,8 @@
 
     onMount(async () => {
         try {
-            const transactionData = await fetch(`http://localhost:8080/payment-request?id=${transactionId}`).then(r => r.json());  
+            // const transactionData = await fetch(`http://localhost:8080/payment-request?id=${transactionId}`).then(r => r.json());  
+            const transactionData = await getTransactionDetail(transactionId);
             transaction = transactionData;
             loading = false;
         } catch (e) {

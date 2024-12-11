@@ -1,33 +1,22 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import type { PaymentRequestStatus } from '$lib/types';
-    import { getTransactionStatus, updateTransactionStatus } from '$lib/api';
+    import { getTransactionStateHistory, updateTransactionState } from '$lib/api';
     
     export let transactionId: string;
 
     let statuses: PaymentRequestStatus[] = [];
     let error: string | null = null;
     let loading = true;
-
-    // Loading spinner state
     let isUpdating = false;
 
     onMount(async () => {
         try {
-            const statusData = await fetch(`http://localhost:8080/payment-request-statuses?id=${transactionId}`).then(r => r.json());
+
+            statuses = await getTransactionStateHistory(transactionId);
+            console.debug("statuses.length", statuses.length);
             // Sort statusData: entries with deletedAt null first, then by deletedAt descending
-            statuses = statusData.sort((a, b) => {
-                if (a.deletedAt === null && b.deletedAt !== null) {
-                    return -1;
-                }
-                if (a.deletedAt !== null && b.deletedAt === null) {
-                    return 1;
-                }
-                if (a.deletedAt !== null && b.deletedAt !== null) {
-                    return new Date(b.deletedAt).getTime() - new Date(a.deletedAt).getTime();
-                }
-                return 0;
-            });
+
             loading = false;
         } catch (e) {
             error = e instanceof Error ? e.message : 'An error occurred';
@@ -38,29 +27,23 @@
     async function handleStateChange(newState: string) {
         try {
             isUpdating = true;
-            const response = await updateTransactionStatus({
+            const response = await updateTransactionState({
                 id: transactionId,
                 state: newState
             });
+            isUpdating = false;
+            loading = true;
             // Refresh status list after update
-            const statusData = await fetch(`http://localhost:8080/payment-request-statuses?id=${transactionId}`).then(r => r.json());
-            // Sort statusData: entries with deletedAt null first, then by deletedAt descending
-            statuses = statusData.sort((a, b) => {
-                if (a.deletedAt === null && b.deletedAt !== null) {
-                    return -1;
-                }
-                if (a.deletedAt !== null && b.deletedAt === null) {
-                    return 1;
-                }
-                if (a.deletedAt !== null && b.deletedAt !== null) {
-                    return new Date(b.deletedAt).getTime() - new Date(a.deletedAt).getTime();
-                }
-                return 0;
-            });
+            statuses = await getTransactionStateHistory(transactionId);
+            loading = false;
+       
+            
         } catch (e) {
             error = e instanceof Error ? e.message : 'Failed to update status';
+            loading = false;
         } finally {
             isUpdating = false;
+            loading = false;
         }
     }
 </script>
