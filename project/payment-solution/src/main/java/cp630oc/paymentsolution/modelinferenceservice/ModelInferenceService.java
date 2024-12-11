@@ -25,9 +25,11 @@ import cp630oc.paymentsolution.paymentrequeststore.entity.TransactionStateId;
 import cp630oc.paymentsolution.paymentrequeststore.repository.TransactionStateRepository;
 import cp630oc.paymentsolution.paymentnotificationservice.NotificationService;
 
-
+/**
+ * The model inference service.
+ */
 @Service
-public class ModelInferenceService implements IModelInferenceService {
+public class ModelInferenceService  {
 
     private static final Logger logger = LoggerFactory.getLogger(ModelInferenceService.class);
 
@@ -80,10 +82,16 @@ public class ModelInferenceService implements IModelInferenceService {
 
     private static final String TAG = ModelInferenceService.class.getSimpleName();
 
+    /**
+     * Default constructor
+     */
     public ModelInferenceService() {
 
     }
 
+    /**
+     * Initialize the ModelInferenceService
+     */
     @PostConstruct
     public void init() {
         logger.debug("[{}] Initializing ModelInferenceService...", TAG);    
@@ -120,6 +128,8 @@ public class ModelInferenceService implements IModelInferenceService {
 
     /**
      * Load an ONNX model
+     * 
+     * @return OrtSession ONNXRuntime session
      */ 
     public OrtSession loadOnnxModel() {
         try {
@@ -150,58 +160,65 @@ public class ModelInferenceService implements IModelInferenceService {
 
     /**
      * Detect fraud using the loaded ONNX model
+     * 
      * @param card Card information
      * @param transaction Transaction information
+     * @param notificationEnabled boolean indicating if notification is enabled
      * @return boolean indicating if fraud is detected
      */
-    @Override
     public boolean detectFraud(Card card, Transaction transaction, boolean notificationEnabled) {
      
+        // Validate input
         if (card == null || transaction == null) {
             throw new IllegalArgumentException("Card and Transaction cannot be null");
         }
     
-        try {            
+        try {       
+            // Load the ONNX model     
             if (session == null) {
                 logger.debug("[{}] Calling loadOnnxModel...", TAG);
                 session = loadOnnxModel();
             }
             
+            // Extract features
             logger.debug("[{}] Extracting features...", TAG);
             float[] features = extractFeatures(card, transaction);
             
+            // Create input tensor
             logger.debug("[{}] Creating input tensor...", TAG);
             OnnxTensor inputTensor = OnnxTensor.createTensor(env, 
                 FloatBuffer.wrap(features), new long[]{1, features.length});
     
+            // Prepare the input map
             Map<String, OnnxTensor> inputs = new HashMap<>();
             inputs.put(session.getInputNames().iterator().next(), inputTensor);
     
             logger.debug("[{}] Running inference...", TAG);
 
-
+            // Run inference
             logger.debug("[{}] Running inference...", TAG);
             OrtSession.Result results = session.run(inputs);
 
-            // Get the probabilities output
-            // Optional<OnnxValue> probabilitiesOptional = results.get("probabilities");
+            // Get the label output
             Optional<OnnxValue> labelOptional = results.get("label");
 
+            // Check if the label output is present
             if (!labelOptional.isPresent()) {
                 throw new RuntimeException("Label output not found in model results");
             }
 
-            // OnnxValue probabilitiesOutput = probabilitiesOptional.get();
+            // Get the label output
             OnnxValue labelOutput = labelOptional.get();
 
+            // Check if the label output is an OnnxTensor
             if (!(labelOutput instanceof OnnxTensor)) {
                 throw new RuntimeException("Expected OnnxTensor output but got: " + labelOutput.getClass());
             }
 
-            // OnnxSequence sequence = (OnnxSequence) probabilitiesOutput;
+            // Get the label tensor
             OnnxTensor labelTensor = (OnnxTensor) labelOutput;
 
-            // convert the probabilities to a float array
+            // Get the label array
             long[] labelArray = (long[]) labelTensor.getValue();
 
             // Get the fraud detection result
@@ -216,6 +233,7 @@ public class ModelInferenceService implements IModelInferenceService {
             // Update the transaction status
             updateTransactionStatus(transaction, fraudDetected);
 
+            // Send notification if enabled
             if (notificationEnabled) {
                 logger.debug("[{}] Calling sendNotification...", TAG);
                 notificationService.sendNotification(card, transaction);
@@ -230,8 +248,16 @@ public class ModelInferenceService implements IModelInferenceService {
         }
     }
 
+    /**
+     * Extract features from the Card and Transaction entities
+     * 
+     * @param card Card entity
+     * @param transaction Transaction entity
+     * @return float[] array of features
+     */
     private float[] extractFeatures(Card card, Transaction transaction) {
 
+        // Validate input
         if (card == null || transaction == null) {
             throw new IllegalArgumentException("Card and Transaction cannot be null");
         }
@@ -239,6 +265,7 @@ public class ModelInferenceService implements IModelInferenceService {
             throw new IllegalArgumentException("Card must have associated Customer");
         }
 
+        // Initialize features array
         float[] features = new float[NUM_FEATURES];
         
         // 1. merchant_city_encoded (mean: -2.944654, std: 1.889771)
@@ -306,11 +333,20 @@ public class ModelInferenceService implements IModelInferenceService {
         return features;
     }
 
-    // Feature normalization methods
+    /**
+     * Feature normalization methods
+     * 
+     * @param key feature name
+     * @param value feature value
+     * @return float normalized value
+     */
     private float encodeValue(String key, String value) {
         // return encodingMappings.get(key).get(value).floatValue();
         Map<String, Float> encoding = encodingMappings.get(key);
+
+        // Check if the encoding is null or the value is not found
         if (encoding == null || !encoding.containsKey(value)) {
+            // Return -1.0f if the value is not found in the encoding to handle missing values
             return -1.0f;
         } else {
             return encoding.get(value).floatValue();
@@ -318,13 +354,25 @@ public class ModelInferenceService implements IModelInferenceService {
     }
 
     
-    @SuppressWarnings("unused")
+    /**
+     * Normalize a feature value using StandardScaler algorithm
+     * 
+     * @param key
+     * @param value
+     * @return
+     */
     private float normalizeValue(String key, float value) {
+        // StandardScaler method
         Float mean = scalarParameters.get(key).get("mean");
         Float std = scalarParameters.get(key).get("std");
         return Float.valueOf((value - mean) / std).floatValue();
     }
     
+    /**
+     * Load encoding mappings from JSON files
+     * 
+     * @throws IOException
+     */
     private void loadEncodingMappings() throws IOException {
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -336,6 +384,7 @@ public class ModelInferenceService implements IModelInferenceService {
                 logger.debug("[{}] Initializing encoding mappings for {}...", TAG, encoderName);
                 encodingMappings.putIfAbsent(encoderName, new HashMap<>());
 
+                // Load the JSON file
                 File jsonFile = new File(encodingMappingDir, encoderName + "_encoded.json");
                 logger.debug("[{}] Loading encoding mappings from {}...", TAG, jsonFile.getAbsolutePath());
                 if (!jsonFile.exists()) {
@@ -350,11 +399,18 @@ public class ModelInferenceService implements IModelInferenceService {
                     JsonNode arrayNode = mapper.readTree(jsonFile);
                     if (arrayNode.isArray()) {
                         logger.debug("[{}] JSON array found: size {}", TAG, arrayNode.size());
+
+                        // Iterate over the JSON array
                         for (JsonNode node : arrayNode) {
+
+                            // Get the key-value pair
                             String key = node.get(encoderName).asText();
                             float value = node.get(encoderName + "_encoded").floatValue();
                             logger.debug("[{}] Adding key-value pair: {} -> {}", TAG, key, value);
+
+                            // Add the key-value pair to the map
                             encodingMappings.get(encoderName).put(key, value);
+
                         }
                         logger.debug("[{}] Encoding mappings loaded for {}", TAG, encoderName);
                     } else {
@@ -372,9 +428,16 @@ public class ModelInferenceService implements IModelInferenceService {
         }
     }
 
+    /**
+     * Load scalar parameters from JSON files
+     * 
+     * @throws IOException
+     */
     private void loadScalerParameters() throws IOException {
  
         try {
+
+            // Load the JSON file
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(new File(encodingMappingDir + "/scaler_params.json"));
             
@@ -383,10 +446,17 @@ public class ModelInferenceService implements IModelInferenceService {
             float[] mean = mapper.convertValue(root.get("mean"), float[].class);
             float[] std = mapper.convertValue(root.get("std"), float[].class);
 
+            // Add parameters to the map
             for (int i = 0; i < columns.length; i++) {
+
+                // Initialize the scalar parameters map if it doesn't exist
                 Map<String, Float> scalarParams = new HashMap<>();
+
+                // Add the scalar parameters
                 scalarParams.put("mean", mean[i]);
                 scalarParams.put("std", std[i]);
+
+                // Add the scalar parameters to the map
                 scalarParameters.put(columns[i], scalarParams);
             }
             
@@ -396,20 +466,31 @@ public class ModelInferenceService implements IModelInferenceService {
         }
     }
 
+    /**
+     * Load winsorization parameters from JSON files
+     * 
+     * @throws IOException
+     */
     private void loadWinsorParams() throws IOException{
         try {
+
+            // Load the JSON file
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(new File(encodingMappingDir + "/winsor_params.json"));
             
+            // Load parameters from JSON
             root.fields().forEachRemaining(entry -> {
+
+                // Get the key-value pair
                 String feature = entry.getKey();
                 JsonNode boundsNode = entry.getValue();
                 
+                // Add the winsor bounds to the map
                 Map<String, Float> bounds = new HashMap<>();
                 bounds.put("lower_bound", boundsNode.get("lower_bound").floatValue());
                 bounds.put("upper_bound", boundsNode.get("upper_bound").floatValue());
-                
                 winsorBounds.put(feature, bounds);
+
             });
         } catch (IOException e) {
             logger.error("Failed to load winsorization parameters: {}", e.getMessage());
@@ -417,20 +498,30 @@ public class ModelInferenceService implements IModelInferenceService {
         }
     }
 
+    /**
+     * Load Box-Cox parameters from JSON files
+     * 
+     * @throws IOException
+     */
     private void loadBoxcoxParameters() throws IOException {
  
         try {
+
+            // Load the JSON file
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(new File(encodingMappingDir + "/boxcox_params.json"));
             
+            // Load parameters from JSON
             root.fields().forEachRemaining(entry -> {
+
+                // Get the key-value pair
                 String feature = entry.getKey();
                 JsonNode boxcoxNode = entry.getValue();
                 
+                // Add the Box-Cox parameters to the map
                 Map<String, Float> boxcoxParam = new HashMap<>();
                 boxcoxParam.put("min_value", boxcoxNode.get("min_value").floatValue());
                 boxcoxParam.put("lambda", boxcoxNode.get("lambda").floatValue());
-                
                 boxcoxParams.put(feature, boxcoxParam);
             });
             
@@ -440,8 +531,16 @@ public class ModelInferenceService implements IModelInferenceService {
         }
     }
 
-    @SuppressWarnings("unused")
+    /**
+     * Apply Box-Cox transformation to a feature value
+     * 
+     * @param featureName
+     * @param value
+     * @return
+     */
     private float applyBoxCox(String featureName, float value) {
+
+        // Get Box-Cox parameters
         Map<String, Float> params = boxcoxParams.get(featureName);
         if (params == null) {
             return value;
@@ -461,6 +560,13 @@ public class ModelInferenceService implements IModelInferenceService {
         }
     }
 
+    /**
+     * Update the transaction status
+     * 
+     * @param transaction
+     * @param fraudDetected
+     * @throws Exception
+     */
     private void updateTransactionStatus(Transaction transaction, boolean fraudDetected) throws Exception { 
         // Update the transaction with the fraud detection result
         logger.debug("[{}] Updating transaction status: fraudDetected={}", TAG, fraudDetected);
@@ -471,6 +577,7 @@ public class ModelInferenceService implements IModelInferenceService {
         Set<TransactionState> transactionStats =  transaction.getTransactionStates();
         logger.debug("[{}] Found {} transaction states", TAG, transactionStats.size());
 
+        // Find the latest transaction state
         logger.debug("[{}] Finding latest transaction state...", TAG);
         TransactionState currentState = null;
         for (TransactionState state : transactionStats) {
@@ -480,9 +587,11 @@ public class ModelInferenceService implements IModelInferenceService {
             }
         }
 
+        // Update the latest transaction state if found
         if (currentState != null) {
             logger.debug("[{}] Found latest transaction state: {}", TAG, currentState.getId().getState());
 
+            // Update the latest transaction state
             logger.debug("[{}] Updating latest transaction state...", TAG);
             currentState.setDeletedAt(new Date());
             TransactionState obsoletedState = transactionStateRepository.save(currentState);
@@ -490,18 +599,20 @@ public class ModelInferenceService implements IModelInferenceService {
             transactionStateRepository.flush();
             logger.debug("[{}] obsolete state flushed", TAG);
 
+            // Create a new transaction state
             TransactionState newState = new TransactionState();
             TransactionStateId newStateId = new TransactionStateId();
             newStateId.setId(transaction.getId());
             newState.setId(newStateId);
             newState.setCreatedAt(new Date());
             newState.setUpdatedAt(new Date());
-
             if (fraudDetected) {
                 newStateId.setState("ONHOLD");
             } else {
                 newStateId.setState("ACCEPTED");
             }
+
+            // Save the new transaction state
             TransactionState savedTransactionState = transactionStateRepository.save(newState);
             if (savedTransactionState == null) {
                 logger.error("[{}] Failed to save transaction state", TAG);
@@ -509,6 +620,7 @@ public class ModelInferenceService implements IModelInferenceService {
             }
             transactionStateRepository.flush();
             transaction.getTransactionStates().add(savedTransactionState);
+            
         } else {
             logger.error("[{}] Failed to find latest transaction state", TAG);
             throw new Exception("Failed to find latest transaction state");

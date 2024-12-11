@@ -1,6 +1,8 @@
 import type { PaymentRequest, PaymentRequestStatus, UpdatePaymentRequestStatusByIdRequest } from './types';
 
-const API_BASE = 'http://localhost:8080';
+// const API_BASE = 'http://localhost:8080';
+const API_BASE = import.meta.env.VITE_PAYMENT_REQUEST_API_URL;
+
 
 export async function searchTransactions(cardNumber: string): Promise<PaymentRequest[]> {
     console.debug('Searching transactions', { cardNumber });

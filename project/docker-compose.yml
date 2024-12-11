@@ -88,6 +88,20 @@ services:
       MINIO_ACCESS_KEY: "pXvDu4WNMZyqLbCNbeJB"
       MINIO_SECRET_KEY: "pocMOObTazz4dI1BBUjX18wp9iFHz3Kk7fls0Y0m"
       MINIO_BUCKET: "test"
+    depends_on:
+      - db
+      - minio
+  fraud-detection-portal:
+    image: reidlai/cp630-fraud-detection-portal:latest
+    container_name: cp630-fraud-detection-portal
+    ports:
+      - "3000:3000"
+    networks:
+      - public-network
+    environment:
+      VITE_PAYMENT_REQUEST_API_URL: "http://payment-solution:8080"
+    depends_on:
+      - payment-solution
     
 networks:
   public-network:

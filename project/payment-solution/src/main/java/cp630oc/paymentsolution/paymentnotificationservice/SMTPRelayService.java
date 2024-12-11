@@ -1,7 +1,6 @@
 package cp630oc.paymentsolution.paymentnotificationservice;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -37,11 +36,6 @@ public class SMTPRelayService {
      * @throws MessagingException the messaging exception
      */
     public void sendEmail(String email, String subject, String body) throws MessagingException {
-        // SimpleMailMessage message = new SimpleMailMessage();
-        // message.setTo(email);
-        // message.setSubject(subject);
-        // message.setText(body);
-        // mailSender.send(message);
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");

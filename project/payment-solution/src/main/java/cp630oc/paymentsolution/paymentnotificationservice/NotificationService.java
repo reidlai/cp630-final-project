@@ -13,8 +13,11 @@ import cp630oc.paymentsolution.paymentrequeststore.entity.Customer;
 import java.util.Date;
 import java.util.Set;
 
+/**
+ * The payment notification service.
+ */
 @Service
-public class NotificationService implements INotificationService {
+public class NotificationService {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationService.class);
 
@@ -30,7 +33,6 @@ public class NotificationService implements INotificationService {
      * @param transaction Transaction Entity
      * @throws Exception
      */
-    @Override
     public void sendNotification(Card card, Transaction transaction) throws Exception {
 
         logger.debug("[{}] Sending notification for transaction ID: {}", TAG, transaction.getId());
@@ -79,6 +81,16 @@ public class NotificationService implements INotificationService {
         smtpRelayService.sendEmail(email, subject, body);
     }
 
+    /**
+     * Create the email body for an accepted transaction.
+     * 
+     * @param transactionId transaction ID
+     * @param transactionDatetime transaction date and time
+     * @param transactionAmount transaction amount
+     * @param cardNumber card number
+     * @param firstName customer first name
+     * @return
+     */
     private String createAcceptedEmailBody(Long transactionId, Date transactionDatetime, double transactionAmount, String cardNumber, String firstName) {
         return "Dear " + firstName + ",\n\n" +
                "Your payment transaction has been accepted.\n\n" +
@@ -92,6 +104,16 @@ public class NotificationService implements INotificationService {
                "Your Company Name";
     }
 
+    /**
+     * Create the email body for a transaction on hold.
+     * 
+     * @param transactionId transaction ID
+     * @param transactionDatetime transaction date and time
+     * @param transactionAmount transaction amount
+     * @param cardNumber card number
+     * @param firstName customer first name
+     * @return
+     */
     private String createOnHoldEmailBody(Long transactionId, Date transactionDatetime, double transactionAmount, String cardNumber, String firstName) {
         return "Dear " + firstName + ",\n\n" +
                "Your payment transaction is currently on hold.\n\n" +

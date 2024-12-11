@@ -68,12 +68,19 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
 
     /**
      * Create a payment request matched with operationId in payment-solution-apis.yaml.
+     * 
+     * @param request The request body.
+     * @param Authorization The x-authorization header.
+     * @param xApiKey The x-api-key header.
+     * @param xNotification The x-notification header.
+     * @return The response entity.
      */
     @Override
-    public ResponseEntity<CreatePaymentRequestResponse> createPaymentRequest(@Valid CreatePaymentRequestRequest request, Optional<String> xAuthorization, Optional<String> xApiKey, Optional<String> xNotification) {
+    public ResponseEntity<CreatePaymentRequestResponse> createPaymentRequest(@Valid CreatePaymentRequestRequest request, Optional<String> Authorization, Optional<String> xApiKey, Optional<String> xNotification) {
 
         logger.debug(TAG, "runnning createPaymentRequest ...");
 
+        // Check if notification is enabled
         if (xNotification.isPresent()) {
             if (xNotification.get().equals("true")) {
                 this.notificationEnabled = true;
@@ -113,7 +120,7 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
             response.setTransactionTimestamp(transactionTimestamp);
 
 
-    
+            // Set fraud detected
             response.setFraudDetected(fraudDetected);
 
             // Set transaction status
@@ -128,11 +135,10 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
                 logger.debug("[{}] Fraud not detected", TAG);
             }
 
+            // Set transaction status
             logger.debug("[{}] Transaction status set to ACCEPTED in response", TAG);
             response.setTransactionStatus("ACCEPTED");
-
             logger.debug("[{}] createPaymentRequest finished", TAG);
-
             return ResponseEntity.status(HttpStatus.CREATED).header("Connection", "keep-alive").header("Keep-Alive", "time-out=60").contentType(MediaType.APPLICATION_JSON).body(response);
             
         } catch (Exception e) {
@@ -147,14 +153,25 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
         }
         
     }
+
+    /**
+     * Get all payment requests.
+     * 
+     * @param Authorization The authorization header.
+     * @param xApiKey The x-api-key header.
+     * @return The response entity.
+     */
     @Override
-    public ResponseEntity<PaymentRequest> getPaymentRequestById(String id, Optional<String> xAuthorization, Optional<String> xApiKey) {
+    public ResponseEntity<PaymentRequest> getPaymentRequestById(String id, Optional<String> Authorization, Optional<String> xApiKey) {
+
+        // Fetch transaction
         Optional<Transaction> transactionOptional = transactionRepository.findById(Long.parseLong(id));
         if (!transactionOptional.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
         Transaction transaction = transactionOptional.get();
 
+        // Create response
         PaymentRequest response = new PaymentRequest();
         response.setId(transaction.getId().toString());
         response.setTransactionAmount(transaction.getTransactionAmount());
@@ -166,8 +183,6 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
         response.setMerchantZip(transaction.getMerchantZip());
         response.setMerchantMccCode(transaction.getMerchantMccCode());
         response.setFraudDetected(transaction.isFraudDetected());
-
-
         return ResponseEntity.status(HttpStatus.OK).header("Connection", "keep-alive").header("Keep-Alive", "time-out=60").contentType(MediaType.APPLICATION_JSON).body(response);
     }
 
@@ -181,6 +196,8 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
     private Transaction createTransaction(Card card, CreatePaymentRequestRequest request) throws Exception {
 
         try {
+
+            // Create transaction
             Transaction transaction = new Transaction();
             
             // Set transaction date and time
@@ -203,18 +220,16 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
             logger.debug("[{}] Setting merchant id: {}", TAG, merchantId);
             transaction.setMerchantId(request.getMerchantId());
 
+            // Set merchant city, state, zip, and mcc code
             String merchantCity = request.getMerchantCity();
             logger.debug("[{}] Setting merchant city: {}", TAG, merchantCity);
             transaction.setMerchantCity(request.getMerchantCity());
-
             String merchantState = request.getMerchantState();
             logger.debug("[{}] Setting merchant state: {}", TAG, merchantState);
             transaction.setMerchantState(request.getMerchantState());
-
             String merchantZip = request.getMerchantZip();
             logger.debug("[{}] Setting merchant zip: {}", TAG, merchantZip);
             transaction.setMerchantZip(request.getMerchantZip());
-
             String merchantMccCode = request.getMerchantMccCode();
             logger.debug("[{}] Setting merchant mcc code {}", TAG, merchantMccCode);
             transaction.setMerchantMccCode(request.getMerchantMccCode());
@@ -242,14 +257,15 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
             logger.debug("[{}] Creating initial transaction state ...", TAG);
             TransactionState transactionState = new TransactionState();
 
+            // Set transaction state
             logger.debug("[{}] Setting transaction state to PENDING", TAG);
-
             transactionState.setCreatedAt(new Date());
             transactionState.setUpdatedAt(new Date()); 
             TransactionStateId stateId = new TransactionStateId(savedTransaction.getId(), "PENDING");
             transactionState.setId(stateId);
             transactionState.setTransaction(savedTransaction);
 
+            // Save transaction state
             logger.debug("[{}] Saving transaction state ...", TAG);
             TransactionState savedTransactionState = transactionStateRepository.save(transactionState);
             if (savedTransactionState == null) {
@@ -280,6 +296,8 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
     private Card fetchCard(CreatePaymentRequestRequest request) throws Exception {
         try {
             logger.debug("[{}] Fetching card by card number: {}", TAG, request.getCardNumber());
+
+            // Fetch card
             Card card = cardRepository.findByCardNumber(request.getCardNumber());
             if (card == null) {
                 logger.debug("[{}] Card not found", TAG);
@@ -293,19 +311,36 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
         
     }
 
+    /**
+     * Get all payment requests.
+     * 
+     * @param Authorization The authorization header.
+     * @param xApiKey The x-api-key header.
+     * @return The response entity.
+     */
     @Override
-    public ResponseEntity<List<PaymentRequest>> getPaymentRequestsByCardNumber(String cardNumber, Optional<String> xAuthorization, Optional<String> xApiKey) {
+    public ResponseEntity<List<PaymentRequest>> getPaymentRequestsByCardNumber(String cardNumber, Optional<String> Authorization, Optional<String> xApiKey) {
         try {
+
+            // Fetch card
             Card card = cardRepository.findByCardNumber(cardNumber);
             if (card == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
+
+            // Fetch transactions
             List<Transaction> transactions = transactionRepository.findAllByCard(card);
             if (transactions == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
+
+            // Create response
             List<PaymentRequest> response = new ArrayList<>();
+
+            // Iterate through transactions
             for (Transaction transaction : transactions) {
+
+                // Create payment request
                 PaymentRequest paymentRequest = new PaymentRequest();
                 paymentRequest.setId(transaction.getId().toString());
                 paymentRequest.setTransactionAmount(transaction.getTransactionAmount());
@@ -317,6 +352,8 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
                 paymentRequest.setMerchantZip(transaction.getMerchantZip());
                 paymentRequest.setMerchantMccCode(transaction.getMerchantMccCode());
                 paymentRequest.setFraudDetected(transaction.isFraudDetected());
+
+                // Add payment request to response
                 response.add(paymentRequest);
             }
             return ResponseEntity.status(HttpStatus.OK).header("Connection", "keep-alive").header("Keep-Alive", "time-out=60").contentType(MediaType.APPLICATION_JSON).body(response);
@@ -327,14 +364,25 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
 
     }
 
+    /**
+     * Get all payment requests.
+     * 
+     * @param Authorization The authorization header.
+     * @param xApiKey The x-api-key header.
+     * @return The response entity.
+     */
     @Override
     public ResponseEntity<List<PaymentRequestStatus>> getPaymentRequestStatusesById(String id, Optional<String> xAuthorization, Optional<String> xApiKey) {
         try {
+
+            // Fetch transaction
             Optional<Transaction> transactionOptional = transactionRepository.findById(Long.parseLong(id));
             if (!transactionOptional.isPresent()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
             Transaction transaction = transactionOptional.get();
+
+            // Create response
             List<TransactionState> transactionStates = new ArrayList<>(transaction.getTransactionStates());
             List<PaymentRequestStatus> response = new ArrayList<>();
             for (TransactionState transactionState : transactionStates) {
@@ -358,13 +406,24 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
         }
     }
 
+    /**
+     * Get all payment requests.
+     * 
+     * @param Authorization The authorization header.
+     * @param xApiKey The x-api-key header.
+     * @return The response entity.
+     */
     @Override
     public ResponseEntity<PaymentRequestStatus> getPaymentRequestStatusById(String id, Optional<String> xAuthorization, Optional<String> xApiKey) {
         try {
+
+            // Fetch transaction
             Optional<Transaction> transactionOptional = transactionRepository.findById(Long.parseLong(id));
             if (!transactionOptional.isPresent()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
+
+            // Create response
             Transaction transaction = transactionOptional.get();
             List<TransactionState> transactionStates = new ArrayList<>(transaction.getTransactionStates());
             TransactionState transactionState = transactionStates.get(transactionStates.size() - 1);
@@ -380,21 +439,33 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
         }
     }
 
+    /**
+     * Update payment request status by id.
+     * 
+     * @param request The request body.
+     * @param Authorization The x-authorization header.
+     * @param xApiKey The x-api-key header.
+     * @param xNotification The x-notification header.
+     * @return The response entity.
+     */
     @Override
-    public ResponseEntity<PaymentRequestStatus> updatePaymentRequestStatusById(UpdatePaymentRequestStatusByIdRequest request, Optional<String> xAuthorization, Optional<String> xApiKey, Optional<String> xNotification) {
+    public ResponseEntity<PaymentRequestStatus> updatePaymentRequestStatusById(UpdatePaymentRequestStatusByIdRequest request, Optional<String> Authorization, Optional<String> xApiKey, Optional<String> xNotification) {
     // public ResponseEntity<PaymentRequestStatus> updatePaymentRequestStatusById(UpdatePaymentRequestStatusByIdRequest request) {
         logger.debug("[{}] Updating payment request status by id ...", TAG);
         try {
+
+            // Check request state exists or not
             TransactionState existingState = transactionStateRepository.findLatestStateByIdAndState(Long.parseLong(request.getId()), request.getState());
 
+            // Find current state
             TransactionState currentState = transactionStateRepository.findLatestStateById(Long.parseLong(request.getId()));
             if (currentState == null) {
                 logger.debug("[{}] No latest transaction state found", TAG);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(null);
             }
             logger.debug("[{}] Current state: {}", TAG, currentState.getId().getState());
-            logger.debug("[{}] **************************************", TAG);
 
+            // Disable latest state
             Date now = new Date();
             logger.debug("[{}] Updating transaction state: before state {}", TAG, currentState.getId().getState());
             currentState.setUpdatedAt(now);
@@ -403,6 +474,7 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
             transactionStateRepository.flush();
             logger.debug("[{}] Updating deletedAt of state {}", TAG, currentState.getId().getState());
             
+            // Create new state
             TransactionState savedTransactionState = null;
             if (existingState == null) {
                 logger.debug("[{}] Creating new transaction state id ...", TAG);
@@ -436,6 +508,7 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
             transactionStateRepository.flush();
             logger.debug("[{}] New transaction state saved: {}", TAG, savedTransactionState.getId().getState());
 
+            // Create response
             logger.debug("[{}] Creating response for Updating payment request status by id ...", TAG);
             PaymentRequestStatus response = new PaymentRequestStatus();
             response.setId(savedTransactionState.getId().getId().toString());
@@ -446,13 +519,6 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
             logger.debug("[{}] Response created for Updating payment request status by id", TAG);
             return ResponseEntity.status(HttpStatus.OK).header("Connection", "keep-alive").header("Keep-Alive", "time-out=60").contentType(MediaType.APPLICATION_JSON).body(response);
 
-
-            // PaymentRequestStatus response = new PaymentRequestStatus();
-            // response.setId("1");
-            // response.setState("PENDING");
-            // response.setCreatedAt(Instant.now().atOffset(ZoneOffset.UTC));
-            // response.setUpdatedAt(Instant.now().atOffset(ZoneOffset.UTC));
-            // return ResponseEntity.status(HttpStatus.OK).header("Connection", "keep-alive").header("Keep-Alive", "time-out=60").contentType(MediaType.APPLICATION_JSON).body(response);
 
         } catch (Exception e) {
             logger.error("[{}] Exception rasied: {}", TAG, e.getMessage());

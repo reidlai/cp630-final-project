@@ -34,3 +34,4 @@ project/payment-solution/.gradle
 project/payment-solution/build
 project/fraud-detection-portal/.svelte-kit
 project/fraud-detection-portal/node_modules
+project/fraud-detection-portal/build
