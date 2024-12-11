@@ -343,13 +343,14 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
         try {
 
             // Fetch card
-            Card card = cardRepository.findByCardNumber(cardNumber);
-            if (card == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-            }
+            // Card card = cardRepository.findByCardNumber(cardNumber);
+            // if (card == null) {
+            //     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            // }
 
             // Fetch transactions
-            List<Transaction> transactions = transactionRepository.findAllByCard(card);
+            // List<Transaction> transactions = transactionRepository.findAllByCard(card);
+            List<Transaction> transactions = transactionRepository.findAllByCardNumber(cardNumber);
             if (transactions == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
