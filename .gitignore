@@ -35,3 +35,11 @@ project/payment-solution/build
 project/fraud-detection-portal/.svelte-kit
 project/fraud-detection-portal/node_modules
 project/fraud-detection-portal/build
+project/mlops-pipeline/data/ydata_reports
+project/mlops-pipeline/data/12-01-2024-19-42-29_files_list.zip
+project/mlops-pipeline/data/boxcoxed_transactions.parquet
+project/mlops-pipeline/data/encoded_transactions.parquet
+project/mlops-pipeline/data/feature_importance.parquet
+project/mlops-pipeline/data/scaled_transactions.parquet
+project/mlops-pipeline/data/transactions.parquet
+project/mlops-pipeline/data/winsorized_transactions.parquet
