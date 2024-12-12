@@ -38,12 +38,11 @@ In response to this pressing issue, various machine learning techniques have bee
 
 The primary objective of this project lies in identifying the suitable Proof of Concept within the appropriate context and testing the model based approach in the financial market using machine learning methods. The solution will include the use of the Kaggle Dataset ealtman2019/credit-card-transactions as it is based on the publication of Altman, E (2019). A number of elements may be identified as being part of this issue and the answer.
 
-1. **Dataset Acquisition**: For the purpose of obtaining the dataset from Kaggle It is necessary to design a web UI as the AI Engineers will find it more convenient to fetch the required dataset from the UI I built. 
-2. **Data Review and Mapping**: Up to this point, the dataset is in the AI Engineer’s hands, so the schema of the dataset will be examined by the AI Engineer. An editor will be developed in order to ease this occasion. Such tool will also allow artificial intelligence engineers’ simple data mapping on different dataset file format that are part of the dataset. They can also find pertinent attributes in the data and map them to their functions as well. Eventually, such mapping will support data understanding and also form part of the data to be fed into the ML operations of AI. This self-contained, visual tool will improve the process of reviewing data and also ensure that the AI model uses the important components.
-3. **MLOps Pipeline**: To begin the MLOps pipeline using the MLOps platform a Rest API will be developed. At the earlier API calls MLOps data pipeline Rest endpoint of different platform will be invoked and this MLOps pipeline will cover those of data preparation engineering features and phases of AI model training as well as testing.
-4. **AI Model Development**: The final step is the implementation of the MLOps pipeline that will incorporate the deployment of the ONNX model derived from the well trained AI model developed at the final stages of the training and testing processes.
-5. **Transaction Validation**: To trigger the validation step, a Payment Order User Interface is being developed which will integrate with Payment Processing backend service. This particular service will leverage another machine learning inference background service which loads the AI model for fraud detection. If a transaction is suspected to be fraudulent then the transaction will be put on pending and a risk manager will be notified in order to investigate the transaction further.
-6. **Notification of Customer**: Also if the transaction is recognized as a potentially fraudulent one, the customer will be sent an email about the potential fraud and further security check process.
+1. **Dataset Acquisition**: For the purpose of obtaining the dataset from Kaggle It is necessary to have a web UI as the AI Engineers will find it more convenient to fetch the required dataset from the UI. 
+2. **Data Review and Mapping**: Up to this point, the dataset is in the AI Engineer’s hands, so the schema of the dataset will be examined by the AI Engineer. An editor will be required in order to ease this occasion. Such tool will also allow artificial intelligence engineers’ simple data mapping on different dataset file format that are part of the dataset. They can also find pertinent attributes in the data and map them to their functions as well. Eventually, such mapping will support data understanding and also form part of the data to be fed into the machine learning training and development. This visual tool will improve the process of reviewing data and also ensure that the AI model uses the important components.
+3. **AI Model Development**: The final step is the deployment of the ONNX model derived from the well trained AI model developed at the final stages of the training and testing processes.
+4. **Transaction Validation**: To trigger the validation step, a payment gateway facing Payment Order API is being developed which will integrate with Payment Processing backend service. This particular service will leverage another machine learning inference background service which loads the AI model for fraud detection. If a transaction is suspected to be fraudulent then the transaction will be put on pending and security officer needs a UI which can review the pending transaction when receiving customer’s enquiry.
+5. **Notification of Customer**: Also if the transaction is recognized as a potentially fraudulent one, the customer will be sent an email about the potential fraud and further security check process.
 
 ##### Conceptual Design
 
@@ -72,10 +71,9 @@ In Figure 2, the system is subdivided into several vital containers as follows:
 3. **MLOps Pipeline**: This is a very important container whereby information mapping from dataset to database table, data clean-up, feature engineering, model training and testing take place.
 4. **Machine Learning Model**: This is LightGBM model mentioned by Huang (2020).
 5. **Payment Processing Service**: This is public facing service that expose to payment gateway and response for the processing of payments from merchants who made the Payment request.
-6. **Message Bus**: This message queue service facilitates to trigger fraud detection asynchronously as back office operation without impact against API throughput.
-7. **Machine Learning Inference Service**: This services mainly serve all fraud detection request against incoming payment request. It will get and use machine learning model to identify any possible frauds.
-8. **Payment Notification Service**: This service sends email alerts to customers if the transaction is successful or on hold if potential fraud detected.  If potential fraud is detected, security office will also be notified.
-9. **Payment Request Portal:** This UI targets to serve security office to manage payment request, especially those with fraud detected by Machine Learning Inference Service.
+6. **Machine Learning Inference Service**: This services mainly serve all fraud detection request against incoming payment request. It will get and use machine learning model to identify any possible frauds.
+7. **Payment Notification Service**: This service sends email alerts to customers if the transaction is successful or on hold if potential fraud detected.
+8. **Payment Request Portal (Fraud Detection Portal):** This UI targets to serve security office to manage payment request, especially those with fraud detected by Machine Learning Inference Service.
 
 ###### Business Events and Workflow
 
@@ -119,7 +117,7 @@ In this session, BPMN (n.d.) is used to illustrate how alll business process orc
 
 <figure>
   <img src="images/payment_processing_component_diagram.png" alt="" style="width: 30%;">
-  <figurecaption>Figure 4 - Payment Processing Service Component Diagram</figurecaption>
+  <figcaption>Figure 4 - Payment Processing Service Component Diagram</figcaption>
 </figure>
 
 As it can be seen in Figure 4, the Payment Processing Service, as part of the transversal functions within the Credit Card Fraud Detection Solution, allows receiving payment requests while avoiding the risks . Figure 4 shows how it contains several components that ensure that payments are made seamlessly.
@@ -134,7 +132,7 @@ Once generally evaluated and the payment request status is updated, it is effici
 
 <figure>
   <img src="images/model_inference_component_diagram.png" alt="" style="width: 30%;">
-  <figurecaption>Figure 4 - Model Inference Service Component Diagram</figurecaption>
+  <figcaption>Figure 4 - Model Inference Service Component Diagram</figcaption>
 </figure>
 
 The Model Inference Service is an important part of the Credit Card Fraud Detection Service and is aimed at preventing fraud attempts in a payment order. It serves as the link between the Payment Processing Service and the fraud detection machine learning model. This service makes sure that every payment order has passed through the fraud assessment, and the outcome has been returned to the concerned stakeholders.
@@ -147,7 +145,7 @@ When the fraud detection i.e. review procedure ends, it generates a result indic
 
 <figure>
   <img src="images/payment_notification_component_diagram.png" alt="" style="width: 30%;">
-  <figurecaption>Figure 4 - Payment Notification Service Compoent Diagram</figurecaption>
+  <figcaption>Figure 4 - Payment Notification Service Compoent Diagram</figcaption>
 </figure>
 
 The Payment Notification Service acts as a communicating channel for reliable and secure intercourse of information between the system, and the customers. The main objective of this service is to provide information to clients about incoming payment requests especially those assessed to be suspicious.
@@ -167,6 +165,7 @@ Due to limited project timeline and PoC purpose, the following technical compone
  - API Gateway (proposed: Kong API Gateway or Hashicorp Consul Connect)
  - Authentication and Authorization (proposed: Casdoor and Casbin)
  - HTTP Proxy (proposed: Caddy reverse proxy with Casdoor and Casbin integration)
+ - Message Bus (proposed: Kafka compatible project or NATS messaging)
 
 
 ### R2 Design data format, collect data, create dataset for the application.
@@ -185,22 +184,22 @@ The real-world application problem is reinforced with great emphasis to the web 
 
 <figure>
   <img src="images/mageai_dashboard.png" alt="" style="width: 90%;">
-  <figurecaption>Figure 5 - Mage.ai Dashboard</figurecaption>
+  <figcaption>Figure 5 - Mage.ai Dashboard</figcaption>
 </figure>
 
 <figure>
   <img src="images/data_processing_pipeline.png" alt="" style="width: 90%;">
-  <figurecaption>Figure 6 - Data Processing Pipeline</figurecaption>
+  <figcaption>Figure 6 - Data Processing Pipeline</figcaption>
 </figure>
 
 <figure>
   <img src="images/data_processing_pipeline_trigger.png" alt="" style="width: 90%;">
-  <figurecaption>Figure 7 - Data Processing Pipeline Trigger</figurecaption>
+  <figcaption>Figure 7 - Data Processing Pipeline Trigger</figcaption>
 </figure>
 
 <figure>
   <img src="images/data_processing_pipeline_source.png" alt="" style="width: 90%;">
-  <figurecaption>Figure 8 - Data Processing Pipeline Editor</figurecaption>
+  <figcaption>Figure 8 - Data Processing Pipeline Editor</figcaption>
 </figure>
 
 As for Figures 5 to 8, these Figures demonstrated how the entire pipeline (which is batched ETL) functioning was performed to migrate Altman’s data set (2019) into PostgresSQL 16 and Apache Parquet File in MinIO object storage. The full source code of Mage.ai is available in project/data-processing.
@@ -209,32 +208,26 @@ As for Figures 5 to 8, these Figures demonstrated how the entire pipeline (which
 
 The descriptive analysis of Altman’s data set (2019) notes inferring transactional dataset, which is noted to be a vast dataset that comprises approximately 2.5 million transaction records. It resulted in serious performance degradation when employing standard pandas's dataframe which is the building core of context data framework used by Mage.ai. Though, this problem was ultimately fixed by the usage of rust-based Polars dataframe library including its astonishing copying technology and csv batch reader’s specialized ability.
 
-##### Minio as bridge between ETL and MLOps Pipeline
+##### Minio as archive storage
 
 Minio plays a crucial role in the acquisition of Kaggle dataset. As an open-source, high-performance, Amazon S3 compatible object storage system, Minio provides us with a simple and cost-effective way to store and serve the massive amounts of data required for our project. Its compatibility with Amazon S3 allows us to leverage the robustness and reliability of Amazon's storage infrastructure, while its open-source nature gives us the flexibility to customize and optimize it to suit our specific needs.
 
-In the MLOps pipeline, Minio serves as the primary object storage system to feed in model training and testing process. It efficiently stores and retrieves large volumes of data with multiple batches or data chunk, which is essential for large data volume loading. The scalability and security of Minio also ensure that our data is safe and accessible, even as the volume of data grows.
-
-The use of Minio in our dataset acquisition process not only simplifies the management of large volumes of data but also enhances the efficiency of our machine learning operations. By providing a reliable and scalable storage solution, Minio enables us to focus on the core tasks of data analysis and model development, thereby accelerating the progress of our project.
-
-With the help of Minio, it helping solving performance issue of loading huge Kaggle dataset. Being an open-source, scalable, and performing object storage that is compatible with S3, Minio allows clients to serve and store large amounts of data at a minimal cost. This system boosts project effectiveness in that it is compatible with Amazon S3 which offers a reliable and strong storage system which is, however, customizable to further fit around specific requirements owing to the system being open-source.
-
-The MLOPS tool chain uses Minio as a object storage system. It has a pivotal role in the processes of training and testing models as it stores a large amount of data, loading it in several batches or chunks with Polars powerful capabilities. It ensures that confidential data is secure and accessible irrespective of the size. Minio’s scalability coupled with the assuring security strengthen our processes and further performance without accessing external resource like cloud computing.
+In the MLOps pipeline, Minio serves as archive storage at this current stage.  But I believe Minio can be used as the primary object storage system to feed in model training and testing process with integration with Polars in the next release. It efficiently stores and retrieves large volumes of data with multiple batches or data chunk, which is essential for large data volume loading. The scalability and security of Minio also ensure that our data is safe and accessible, even as the volume of data grows.
 
 <figure>
   <img src="images/mino_login.png" alt="" style="width: 90%;">
-  <figurecaption>Figure 9 - MinIO Login</figurecaption>
+  <figcaption>Figure 9 - MinIO Login</figcaption>
 </figure>
 
 
 <figure>
   <img src="images/minio_bucket.png" alt=" style="width: 90%;"">
-  <figurecaption>Figure 10 - MinIO Bucket</figurecaption>
+  <figcaption>Figure 10 - MinIO Bucket</figcaption>
 </figure>
 
 <figure>
   <img src="images/minio_object_list.png" alt="" style="width: 90%;">
-  <figurecaption>Figure 11 - MinIO Bucket Object List</figurecaption>
+  <figcaption>Figure 11 - MinIO Bucket Object List</figcaption>
 </figure>
 
 ##### Polars
@@ -246,6 +239,7 @@ Polars has another interesting aspect its support for lazy execution. This means
 Polars also allows for data manipulation operations such as filtering, aggregation or sorting, and supports multiple data types including integer, float and boolean, date, time and string. All of these make it a multifunctional instrument for working with and analyzing data essential in us for the data processing pipeline.
 
 ```
+# Python file txn_data_csv.py
 ...
 # Create batch reader and batches from Kaggle dataset
 reader = pl.read_csv_batched(file_path + "/" + file_name)
@@ -267,8 +261,6 @@ for df in batches:
 
 ### R3 Develop and implement data application algorithms for the proposed application problem.
 
- 
-
 Complete? (Yes/No) Yes
 
 If Yes, briefly describe: 
@@ -288,7 +280,7 @@ Cleansing and Feature Engineering.
 
 <figure>
   <img src="images/data_pipeline_concept.png" alt="" style="width: 50%;">
-  <figurecaption>Figure 12 - Data Pipeline Concept</figurecaption>
+  <figcaption>Figure 12 - Data Pipeline Concept</figcaption>
 </figure>
 
 The first stage is the raw data acquisition or data processing and formats the data into a form that can be used for subsequent analysis. The second stage is data profiling which involves examining the structure of the data set for possible errors and exploration of patterns within the values of the data. After profiling data comes the third step that involves imputation or the removal of outliers also known as data cleansing which is done to improve the quality of results that will be obtained from the latter analyses. The conclusion of this step is the creation of combined variables by engineering which improves the representation of the data for the learning algorithm.
@@ -394,7 +386,7 @@ YData Proflding API was adopted to provide quick EDA Analysis into preliminary f
 
 <figure>
   <img src="images/initial_eda_analysis.png" alt="" style="width: 90%;">
-  <figurecaption>Figure 13 - Initial EDA Analysis</figurecaption>
+  <figcaption>Figure 13 - Initial EDA Analysis</figcaption>
 </figure>
 
 ##### Data Cleansing
@@ -510,14 +502,14 @@ The following boxplot shows that encoded data has serious feature magnitude issu
 
 <figure>
   <img src="images/boxplat_before_scaling.png" alt="" style="width: 50%;">
-  <figurecaption>Figure 14 - Feature Magnitude Boxplot before scaling</figurecaption>
+  <figcaption>Figure 14 - Feature Magnitude Boxplot before scaling</figcaption>
 </figure>
 
 To solve magnitude issue, Standard Scaler was used to balance all numerical features.  Figure 15 shows the improvement after applying scaling method.
 
 <figure>
   <img src="images/boxplot_after_scaling.png" alt="" style="width: 50%;">
-  <figurecaption>Figure 15 - Feature Magnitude Boxplot after scaling</figurecaption>
+  <figcaption>Figure 15 - Feature Magnitude Boxplot after scaling</figcaption>
 </figure>
 
 ###### Outliers
@@ -694,38 +686,91 @@ Average Precision Score: 0.0146
 AUC Score: 0.9563
 ```
 
-##### Model Deployment
 
-The final  model was deployed as Open Neural Network Exchange (ONNX) format. Being a framework-neutral format, ONNX provides an opportunity to create models in one framework and use them in one more model without the need to address compatibility issues between the two models. Moreover, it allows for portable implementation of the models, from cloud servers to edge devices which renders the device agnostic deployment of the models. To achieve this ONNX designed the high-performance computing optimizations that are suitable for production, ones that make ONNX fast and efficient. One of the reasons developers make use of ONNX, an industry-standard model format, is to ensure that their models remain usable in the long term and that they do not succumb to framework lock-in as well as updates and migration become less of a hassle. Lastly, ONNX provides migration across multiple machine learning frameworks, tools and compilers which is ideal for teams working with various technologies during the development process.
+### R4 Do data computing to generate models, representing models in portable format and stored in file or database. More credit is given if distributed approach is used data mining of big dataset.
+
+Complete? (Yes/No) Yes
+
+If Yes, briefly describe: 
+
+1. what you have done, 
+2. what are the new features. 
+3. Take some screen to demonstrate the features if applicable. 
+
+#### Model Deployment
+
+The final  model was deployed as Open Neural Network Exchange (ONNX) format and this step can be found in the Jupyter Notebook mlops_pipeline.ipynb (<project_root>/project/mlops_pipeline/mlops_pipeline.ipynb). Being a framework-neutral format, ONNX provides an opportunity to create models in one framework and use them in one more model without the need to address compatibility issues between the two models. Moreover, it allows for portable implementation of the models, from cloud servers to edge devices which renders the device agnostic deployment of the models. To achieve this ONNX designed the high-performance computing optimizations that are suitable for production, ones that make ONNX fast and efficient. One of the reasons developers make use of ONNX, an industry-standard model format, is to ensure that their models remain usable in the long term and that they do not succumb to framework lock-in as well as updates and migration become less of a hassle. Lastly, ONNX provides migration across multiple machine learning frameworks, tools and compilers which is ideal for teams working with various technologies during the development process.
 
 <figure>
   <img src="images/fraud_detection_model_onnx.png" alt="" style="width: 50%;">
-  <figurecaption>Figure 16 - FIinal ONNX Model Visualization</figurecaption>
+  <figcaption>Figure 16 - FIinal ONNX Model Visualization</figcaption>
 </figure>
 
 <aside>
 ***Remarks**: The original design was planned to upload ONNX model to Minio and allows SpringBoot application load it dynamically. Because of rushing out project time resource, this implementation changed directly to bundle ONNX model into SpringBoot docker image together with other parameter files with .json extension.*
 </aside>
 
+#### ML Inference Service and Microsoft ONNXRuntime
 
-### R4 Do data computing to generate models, representing models in portable format and stored in file or database. More credit is given if distributed approach is used data mining of big dataset.
+Microsoft's ONNXRuntime is an execution engine designed to work with onnx (open neural network exchange) models with a focus on performance. As cross-platform versions of trained machine learning models, ONNX models make ONNXRuntime an all purposeful means to run machine learning models, in addition to embedding them inside a SpringBoot application.
 
- 
+For instance, in the case of a machine learning inference service, ONNXRuntime can be employed inside a SpringBoot-based app to support the deployment of an ONNX model. In this, ONNX Runtime is embedded into a SpringBoot application as a normal practice while developing a machine learning model. For example, a service class called ModelInferenceService can be designed which also has functions to load the ONNX model, apply the model to a data and get the result of the prediction.
 
-Complete? (Yes/No) 
+In the service of the model inference class, the onnxruntime is invoked and in the process, the onnx model is saved into it. Usually, this is achieved by a method which is invoked during the construction of the service. This entails loading the model file which is in onnx format from an effective location and subsequently loading it into the onnx runtime.
 
-If Yes, briefly describe: 
+After loading the model, the instance of the ModelInferenceService class is able to take an input data and run the model on it. This is accomplished within a function which takes the input data as an argument, processes it into a form compatible with the model, and Inputs the data into the ONNXRuntime. The data is then processed and a prediction result is generated by the ONNXRuntime.
 
-1. what you have done, 
-2. what are the new features. 
-3. Take some screen to demonstrate the features if applicable. 
+```java
+package cp630oc.paymentsolution.modelinferenceservice;
 
+import ai.onnxruntime.*; // impport Microsoft ONNXRuntime 
+...
+
+    /**
+     * Detect fraud using the loaded ONNX model
+     * 
+     * @param card Card information
+     * @param transaction Transaction information
+     * @param notificationEnabled boolean indicating if notification is enabled
+     * @return boolean indicating if fraud is detected
+     */
+    public boolean detectFraud(Card card, Transaction transaction, boolean notificationEnabled) {
+				// Run inference
+				logger.debug("[{}] Running inference...", TAG);
+				OrtSession.Result results = session.run(inputs);
+				
+				// Get the label output
+				Optional<OnnxValue> labelOptional = results.get("label");
+				
+				// Check if the label output is present
+				if (!labelOptional.isPresent()) {
+				    throw new RuntimeException("Label output not found in model results");
+				}
+				
+				// Get the label output
+				OnnxValue labelOutput = labelOptional.get();
+				
+				// Check if the label output is an OnnxTensor
+				if (!(labelOutput instanceof OnnxTensor)) {
+				    throw new RuntimeException("Expected OnnxTensor output but got: " + labelOutput.getClass());
+				}
+				
+				// Get the label tensor
+				OnnxTensor labelTensor = (OnnxTensor) labelOutput;
+				
+				// Get the label array
+				long[] labelArray = (long[]) labelTensor.getValue();
+				
+				// Get the fraud detection result
+				boolean fraudDetected = (labelArray[0] == 1);
+				...
+		}
+...
+```
 
 ### R5 Create deployable service components using application models using Java based enterprise computing technologies, to create client program to do remote call of the data mining services.
 
- 
-
-Complete? (Yes/No) 
+Complete? (Yes/No) Yes
 
 If Yes, briefly describe: 
 
@@ -733,44 +778,860 @@ If Yes, briefly describe:
 2. what are the new features. 
 3. Take some screen to demonstrate the features if applicable. 
 
+#### Solution Design
+
+After AI model had been built, this section focus on solution designed and implemented.  Let’s narrow down to the container diagram.
+
+<figure>
+  <img src="images/container_diagram_focus.png" alt="" style="width: 50%;">
+  <figcaption>Figure 17 - C4 Container Diagram (Excluding MLOps Pipeline)</figcaption>
+</figure>
+
+
+##### Payment Processing Service
+
+<figure>
+  <img src="images/payment_processing_component_diagram.png" alt="" style="width: 30%;">
+  <figcaption>Figure 18 - Payment Processing Service Component Diagram</figcaption>
+</figure>
+
+As it can be seen in Figure 18, the Payment Processing Service, as part of the transversal functions within the Credit Card Fraud Detection Solution, allows receiving payment requests while avoiding the risks. This service contains several components that ensure that payments are made seamlessly.
+
+Payment Gateway sends Payment Request and a REST Controller initiates a service that is the first in the payment request chain. This controller’s responsibility is to implement the workflow which consists of initiating the fraudulent detection of the payment and payment data management. In order to check if there is possible fraudulent abuse, the Payment Request Controller sends the request, which contains data, to the Model Inference service. Data comes back to this service which in turn has some actionable data which the controller considers some its relevant data and asleep out. When all operations have been performed to check the fraudulent abuse then Model Inference Service makes any necessary modification updates for the fraud detection.
+
+The Payment Request REST Controller certainly does an extra job, it validates that there exists a payment request concerning the payment which is somewhere in the system. It connects with the database client and ensures that the request on payment is recorded in the Payment Request Store, which is a live payment application service. This ensures therefore that all the information regarding the payment is captured and can be retrieved for use or for record purposes.
+
+Once generally evaluated and the payment request status is updated, it is efficiently transmitted the statsus back to external payment gateway. This client calls the payment gateway callback interface.
+
+##### Machine Learning Inference Service
+
+<figure>
+  <img src="images/model_inference_component_diagram.png" alt="" style="width: 30%;">
+  <figcaption>Figure 19 - Model Inference Service Component Diagram</figcaption>
+</figure>
+
+The Model Inference Service is an important part of the Credit Card Fraud Detection Service and is aimed at preventing fraud attempts in a payment order. It serves as the link between the Payment Processing Service and the fraud detection machine learning model. This service makes sure that every payment order has passed through the fraud assessment, and the outcome has been returned to the concerned stakeholders.
+
+The Model Inference Engine is the single engine of the service, which runs the machine learning model using payment data as the input. It engages in a working relationship with the Machine Learning Model that has been uploaded with algorithms and the relevant data to display trends of suspiciousness in the payment requests.
+
+When the fraud detection i.e. review procedure ends, it generates a result indicating whether there exists a chance of the current transaction being fraudulent rather than normal. This result is then routed back to the Payment Processing Service in order to bring level of fraud detection of the corresponding payment request to the appropriate level. Furthermore, the request handler also performs the function of informing interested parties in the state of the payment through the payment notification service in order to ensure that the result of the fraud detection process is indeed notified.
+
+##### Payment Notification Backend Service
+
+<figure>
+  <img src="images/payment_notification_component_diagram.png" alt="" style="width: 30%;">
+  <figcaption>Figure 20 - Payment Notification Service Compoent Diagram</figcaption>
+</figure>
+
+The Payment Notification Service acts as a communicating channel for reliable and secure intercourse of information between the system, and the customers. The main objective of this service is to provide information to clients about incoming payment requests especially those assessed to be suspicious.
+
+This service in its implementation is quite professional and is designed to be secure against tampering. The request handler only considers the customer ID as the needed parameter. After that the handler fetches the customer’s name and email address which does not compromise personal information and minimizes data breaches.
+
+In addition the service uses the official company email or its variations that were previously constructed for all the purposes of correspondence. Such an approach guarantees orthodoxy and uniformity of the messages as well as the self-defense of the corporation from delictous phrases. Thus, the Payment Notification Service assists to secure the system and at the same time enables great communication with the clients.
+
+If customers concern their on-hold payment if potential fraud detected, they need to approach security officer for further verificaition and special handling.
+
+#### End to End Integration
+
+Based on previous from conception design, the following sequence diagram illustrates how each components orchestrate together to deliver value to users.
+
+<figure>
+  <img src="images/sequence_diagram.png" alt="" style="width: 50%;">
+  <figcaption>Figure 21 - Sequence Diagram</figcaption>
+</figure>
+
+##### SpringBoot Framwork v3.1.5 with Java 17
+
+As part of the course requirements, we are expected to employ the use of Java-based Enterprise Computing as part of the project. Once we examined the current most recent technologies in the industry, I chose SpringBoot.
+
+Back in the 1990s, EJB and associated technologies had a reputation for being advanced technology and were embraced on a large scale. But a lot has changed over the decades in terms of technology. There is a trend in a lot of businesses today to embrace cloud computing and microservice architecture. This change is caused predominantly by the requirement for horizontal scaling capabilities now being a priority when compared to vertical scaling capabilities which has always been the focus in the past.
+
+Another factor that explains why I selected SpringBoot in preference to EJB related technologies is that the latter has a considerably large memory footprint. Computer resource requirement of EJB related technologies are relatively high which is an issue for laptops or a personal computer that can not support such architectures.
+
+As the initial goal was to build three separate microservices, multilayerent Payment Processing Service, ML Inference Service and Payment Notification Service along with deploying the within a service mesh architecture, it did appear to be somewhat over-engineered while reviewing the setup. A better provision was reached which encompassed enveloping the three microservices within a single SpringBoot application.
+
+##### Project Skeleton
+
+The following UML class diagram outlines the project skeleton. This can help reader understand how the SpringBoot project source code was organized to match the above C4 component digrams and BPMN model.
+
+<figure>
+  <img src="images/class_diagram.png" alt="" style="width: 50%;">
+  <figcaption>Figure 22 - Preliminary UML Class Diagram</figcaption>
+</figure>
+
+###### Rest Conroller
+
+### Rest Conroller
+
+In a Spring Boot application, the Rest Controller PaymentRequestRESTController provides the endpoints allowing the application to handle the incoming HTTP requests which responds to the business logic of the application. With respect to the Payment Anti-Fraud Solution, the Payment Request REST Controller allows handling the payment request received, validating the data sent and communicating with class ModelInferenceService that process, store and analyze the data to check for fraud.
+
+This project incorporates the OpenAPI Generator that simplifies the development of the Rest Controller. The OpenAPI Generator generates the base code for the various REST API endpoints based on the OpenAPI specification that was submitted. This eliminates overlap during coding and reduces a lot of time when developing the features. A PaymentRequestRESTController class is created, and this class is modified to implement the logic specific to the endpoint /payment-request. For instance, when a payment request is made, the controller checks the contents of the request and if they are correct, a transaction is created and stored with the information in the database. The information is then sent to the ML Inference Service for fraud detection. Finally, the results from this investigation are delivered to the client and the Payment Notification Service receives the necessary status updates.
+
+```java
+package cp630oc.paymentsolution.paymentprocessingservice;
+...
+import cp630oc.paymentsolution.paymentprocessingservice.api.PaymentRequestApi;
+import cp630oc.paymentsolution.paymentprocessingservice.api.PaymentRequestStatusApi;
+import cp630oc.paymentsolution.paymentprocessingservice.api.PaymentRequestStatusesApi;
+import cp630oc.paymentsolution.paymentprocessingservice.api.PaymentRequestsApi;
+...
+/**
+ * The payment request REST controller which implements the PaymentRequestApi interface generated 
+ * by OpenAPI generator.
+ */
+@RestController
+@CrossOrigin(
+    origins = "*",
+    allowedHeaders = {
+        "Content-Type",
+        "Accept",
+        "Origin",
+        "X-Notification",
+        "Authorization"
+    },
+    methods = {
+        RequestMethod.GET,
+        RequestMethod.POST,
+        RequestMethod.PUT,
+        RequestMethod.DELETE,
+        RequestMethod.OPTIONS
+    },
+    exposedHeaders = {
+        "Access-Control-Allow-Origin",
+        "Access-Control-Allow-Credentials"
+    }
+)
+public class PaymentRequestRESTController implements PaymentRequestApi, PaymentRequestsApi, PaymentRequestStatusApi, PaymentRequestStatusesApi {
+
+    /**
+     * Create a payment request matched with operationId in payment-solution-apis.yaml.
+     * 
+     * @param request The request body.
+     * @param Authorization The x-authorization header.
+     * @param xApiKey The x-api-key header.
+     * @param xNotification The x-notification header.
+     * @return The response entity.
+     */
+    @Override
+    public ResponseEntity<CreatePaymentRequestResponse> createPaymentRequest(@Valid CreatePaymentRequestRequest request, Optional<String> Authorization, Optional<String> xApiKey, Optional<String> xNotification) {
+    ...
+    }
+    
+    /**
+     * Get all payment requests.
+     * 
+     * @param Authorization The authorization header.
+     * @param xApiKey The x-api-key header.
+     * @return The response entity.
+     */
+    @Override
+    public ResponseEntity<PaymentRequest> getPaymentRequestById(String id, Optional<String> Authorization, Optional<String> xApiKey) {
+    ...
+    }
+    
+    /**
+     * Get all payment requests.
+     * 
+     * @param Authorization The authorization header.
+     * @param xApiKey The x-api-key header.
+     * @return The response entity.
+     */
+    @Override
+    public ResponseEntity<List<PaymentRequest>> getPaymentRequestsByCardNumber(String cardNumber, Optional<String> Authorization, Optional<String> xApiKey) {
+    ...
+    }
+    
+    /**
+     * Get all payment requests.
+     * 
+     * @param Authorization The authorization header.
+     * @param xApiKey The x-api-key header.
+     * @return The response entity.
+     */
+    @Override
+    public ResponseEntity<List<PaymentRequestStatus>> getPaymentRequestStatusesById(String id, Optional<String> Authorization, Optional<String> xApiKey) {
+    ...
+    }
+    
+    /**
+     * Get all payment requests.
+     * 
+     * @param Authorization The authorization header.
+     * @param xApiKey The x-api-key header.
+     * @return The response entity.
+     */
+    @Override
+    public ResponseEntity<PaymentRequestStatus> getPaymentRequestStatusById(String id, Optional<String> Authorization, Optional<String> xApiKey) {
+    ...
+    }
+    
+    /**
+     * Update payment request status by id.
+     * 
+     * @param request The request body.
+     * @param Authorization The x-authorization header.
+     * @param xApiKey The x-api-key header.
+     * @param xNotification The x-notification header.
+     * @return The response entity.
+     */
+    @Override
+    public ResponseEntity<PaymentRequestStatus> updatePaymentRequestStatusById(UpdatePaymentRequestStatusByIdRequest request, Optional<String> Authorization, Optional<String> xApiKey, Optional<String> xNotification) {
+    ...
+    }
+}
+```
+
+At the front end SvelteKit is used to create modern, responsive and interactive user interfaces. The API interaction of SvelteKit with the Spring Boot Rest Controller is implemented through an API service, api.ts which is written in TypeScript that resides within the SvelteKit project. This service allows to abstract the details of the API end-point on the backend from the client-side application. For instance, when a security officer makes a card related payment requests query using the front end, the SvelteKit application contact at /payment-requests endpoint using searchTransactions function. The function takes care of settings such as Content-Type, Authorization, and other custom headers or payloads.
+
+The sequence of operations starts with SvelteKit accepting the details of the payment from the user using its flexible forms and posting the information in the form of a JSON object to the address /payment-requests of the backend. The api.ts module provides the details for composing HTTP requests including handling of errors and responses. It guarantees that the transfer of data from the frontend to the backend is safe and efficient. 
+
+```java
+# api.ts
+
+import type { PaymentRequest, PaymentRequestStatus, UpdatePaymentRequestStatusByIdRequest } from './types';
+
+// Payment Solutoin API Endpoint
+const API_BASE = import.meta.env.VITE_PAYMENT_REQUEST_API_URL;
+
+const headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'Authorization': `Bearer ${import.meta.env.VITE_API_TOKEN}`,
+    'X-Notification': 'true',
+};
+
+export async function searchTransactions(cardNumber: string): Promise<PaymentRequest[]> {
+...
+}
+
+export async function getTransactionDetail(id: string): Promise<PaymentRequest> {
+...
+}
+
+export async function getTransactionStateHistory(id: string): Promise<PaymentRequestStatus> {
+...
+}
+
+export async function updateTransactionState(request: UpdatePaymentRequestStatusByIdRequest): Promise<PaymentRequestStatus> {
+...
+}
+```
+
+###### Dependency Injection
+
+SpringBoot is the widely used framework for building Java applications. It offers a Dependency Injection (DI) feature that allows developers to manage and configure application components. DI is a design pattern for loosening the coupling between components, which makes it easier to design, test, and maintain the code. With respect to SpringBoot, once a component is created, it is often necessary to ‘autowire’ dependencies into it. If the component has a dependency, SpringBoot will “autowire” this dependency instead of forcing the component to build or search for it. This is done by placing the @Autowired annotation on fields, constructors, and methods where the dependency is necessary. Autowiring is normally done in conjunction with the Singleton design pattern which restricts the number of instances of a class within an application. SpringBoot is set by default to create components as singletons, meaning that every time a component that has been modified is autocreated, the same instance is made, and will be used wherever it’s needed. This makes optimal use of available resources and guarantees uniformity of the application at all times.
+
+```
+package cp630oc.paymentsolution.paymentprocessingservice;
+...
+import org.springframework.beans.factory.annotation.Autowired;
+...
+import cp630oc.paymentsolution.modelinferenceservice.ModelInferenceService;
+...
+/**
+ * The payment request REST controller which implements the PaymentRequestApi interface generated 
+ * by OpenAPI generator.
+ */
+@RestController
+@CrossOrigin(
+    origins = "*",
+    allowedHeaders = {
+        "Content-Type",
+        "Accept",
+        "Origin",
+        "X-Notification",
+        "Authorization"
+    },
+    methods = {
+        RequestMethod.GET,
+        RequestMethod.POST,
+        RequestMethod.PUT,
+        RequestMethod.DELETE,
+        RequestMethod.OPTIONS
+    },
+    exposedHeaders = {
+        "Access-Control-Allow-Origin",
+        "Access-Control-Allow-Credentials"
+    }
+)
+public class PaymentRequestRESTController implements PaymentRequestApi, PaymentRequestsApi, PaymentRequestStatusApi, PaymentRequestStatusesApi {
+    ...
+    @Autowired
+    private ModelInferenceService modelInferenceService;
+    ...
+    /**
+     * Create a payment request matched with operationId in payment-solution-apis.yaml.
+     * 
+     * @param request The request body.
+     * @param Authorization The x-authorization header.
+     * @param xApiKey The x-api-key header.
+     * @param xNotification The x-notification header.
+     * @return The response entity.
+     */
+    @Override
+    public ResponseEntity<CreatePaymentRequestResponse> createPaymentRequest(@Valid CreatePaymentRequestRequest request, Optional<String> Authorization, Optional<String> xApiKey, Optional<String> xNotification) {
+        ...
+        // Detect fraud
+        logger.debug("[{}] Detecting fraud ...", TAG);
+        boolean fraudDetected = modelInferenceService.detectFraud(card, savedTransaction, notificationEnabled);
+        logger.debug("[{}] Fraud detected: {}", TAG, fraudDetected);
+        ...
+    }
+    ...
+}
+```
+
+###### JPA and Hibernate
+
+SpringBoot simplifies the development process through its JPA, Hibernate and @Entity and @Repository annotations. JPA also provides a level of abstraction over JDBC, allowing for easier application to database interactions. Hibernate is one of the JPA specification implementations that adds addtitional features such as caching and dirty checking. The @Entity annotation indicates that a Java class will be treated as an entity which will be mapped to a database table. Each instance of the entity will correspond to one row in the table while the entity’s fields will correspond to the columns of the table. This enhances the interaction of the programmer with the database on the object oriented level. To indicate that some class is functioning as a repository and should be automatically discovered via Spring’s component scan the interface must be annotated with @Repository. This annotation enhances the efficiency of coding and automatic code generation by minimizing the amount of boilerplate and automatically generating bean definition language files. It translates any technology-driven specific exceptions into non-thread-safe unified data access exceptions of the Spring framework. The efforts of JPA, Hibernate, and the incorporated annotations @Entity and @Repository are resulted in fast development since they cut down manual effort in coding which makes code reuse and maintainability better.
+
+Also, it makes it possible for the developers to create business logic rather than concern themselves with the complexities of a database which in turn boosts productivity and effectiveness.
+
+All entity classes and repositories interface can be found in pacakge cp630.paymentsolution.paymentrequeststore package or can be found in the class diagram.
+
+```java
+package cp630oc.paymentsolution.paymentprocessingservice;
+...
+/**
+ * The payment request REST controller which implements the PaymentRequestApi interface generated 
+ * by OpenAPI generator.
+ */
+@RestController
+@CrossOrigin(
+    origins = "*",
+    allowedHeaders = {
+        "Content-Type",
+        "Accept",
+        "Origin",
+        "X-Notification",
+        "Authorization"
+    },
+    methods = {
+        RequestMethod.GET,
+        RequestMethod.POST,
+        RequestMethod.PUT,
+        RequestMethod.DELETE,
+        RequestMethod.OPTIONS
+    },
+    exposedHeaders = {
+        "Access-Control-Allow-Origin",
+        "Access-Control-Allow-Credentials"
+    }
+)
+public class PaymentRequestRESTController implements PaymentRequestApi, PaymentRequestsApi, PaymentRequestStatusApi, PaymentRequestStatusesApi {
+    ...
+    @Autowired
+    private TransactionRepository transactionRepository;
+    ...
+    @Autowired
+    private TransactionStateRepository transactionStateRepository;
+		...
+    /**
+     * Create a transaction.
+     * @param card
+     * @param request
+     * @return
+     * @throws Exception
+     */
+    private Transaction createTransaction(Card card, CreatePaymentRequestRequest request) throws Exception {
+
+        try {
+            ...
+            // Save transaction
+            logger.debug("[{}] Saving transaction ...", TAG);
+            Transaction savedTransaction = transactionRepository.save(transaction);
+            if (savedTransaction == null) {
+                logger.debug("[{}] Failed to save transaction", TAG);
+                throw new Exception("Failed to save transaction");
+            }
+            logger.debug("[{}] Transaction saved: {}", TAG, savedTransaction.getId());
+            transactionRepository.flush();
+						...
+            // Save transaction state
+            logger.debug("[{}] Saving transaction state ...", TAG);
+            TransactionState savedTransactionState = transactionStateRepository.save(transactionState);
+            if (savedTransactionState == null) {
+                logger.debug("[{}] Failed to save transaction state", TAG);
+                throw new Exception("Failed to save transaction state");
+            }
+            logger.debug("[{}] Transaction state saved: {}", TAG, savedTransactionState.getId());
+            transactionStateRepository.flush();
+						...
+        } catch (Exception e) {
+            throw new Exception("Failed to create transaction: " + e.getMessage());
+        }
+    }
+}
+...
+```
 
 ### R6 Deploy service components onto enterprise application servers.
-
  
 
-Complete? (Yes/No) 
+Complete? (Yes/No) Yes
 
 If Yes, briefly describe: 
 
 1. what you have done, 
 2. what are the new features. 
 3. Take some screen to demonstrate the features if applicable. 
+
+
+#### Deployment
+
+This project scope is very small. To speed up and prepare local demo environment, Docker Compose was used instead of Kubernetes or Minikube to simplify server setting in local machine for fast deployment.
+
+<figure>
+  <img src="images/cp630-final-project.drawio.png" alt="" style="width: 50%;">
+  <figcaption>Figure 23 - Docker Compose Deployment Overview</figcaption>
+</figure>
+
+The scope of the project was small plus it was meant to serve as a proof of concept; hence, simplicity, speed, and local development buffer were deemed to be the top priorities in the deployment strategy. The entire team had to work in the same environment, so in order to speed up the testing phase, and deploy multiple services, docker compose was used. This method maintains the basic advantages of containerization while omitting high level orchestration tools such as Kubernetes.
+
+A single docker compose file was used in this project as it has many benefits when all services, networks, and volumes are required to be spun up with ease. This makes the development teams lives easier as a single command brings up the entire environment. In this very project, docker compose was used as an orchestrator for a broad spectrum of containers like: the payment processing services, postgresql database, fraud detection service, Object Minio storage, and MailHog.
+
+```plaintext
+
+# docker-compose.yml
+
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000"  # MinIO API
+      - "9001:9001"  # MinIO Console
+    networks:
+      - public-network
+    volumes: 
+      - minio-data:/data
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address :9001
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks: 
+      - public-network
+    restart: always
+
+  db: 
+    image: postgres:16
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    networks: 
+      - public-network
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes: 
+      - pg-data:/var/lib/postgresql/data/pgdata 
+
+  payment-solution:
+    image: reidlai/cp630-payment-solution:latest
+    container_name: cp630-payment-solution
+    ports:
+      - "8080:8080"
+    networks:
+      - public-network
+    environment:
+      SPRING_DATASOURCE_USERNAME: "postgres"
+      SPRING_DATASOURCE_PASSWORD: "postgres"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/postgres"
+      SPRING_PROFILES_ACTIVE: "dev"
+      SPRING_MAIL_HOST: "mailhog"
+      SPRING_MAIL_PORT: "1025"
+      POSTGRES_HOST: "db"
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "postgres"
+      POSTGRES_SCHEMA: "public"
+      MODEL_PATH: "/app/model/lightgbm_fraud_detector.onnx"
+      ENCODING_MAPPING_DIR: "/app/model"
+    # volumes:
+    #   - type: bind
+    #     source: ./model
+    #     target: /app/model
+    #     read_only: true
+    depends_on:
+      - db
+  mageai:
+    image: reidlai/cp630-mageai:latest
+    container_name: cp630-mageai
+    ports: 
+      - "6789:6789"
+    networks:
+      - public-network
+    volumes:
+      - ./data-processing/default:/home/src/default
+      - mageai-data:/home/src/mage_data
+    environment:
+      POSTGRES_HOST: "db"
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "postgres"
+      POSTGRES_SCHEMA: "public"
+      MINIO_ENDPOINT: "minio:9000"
+      MINIO_ACCESS_KEY: "pXvDu4WNMZyqLbCNbeJB"
+      MINIO_SECRET_KEY: "pocMOObTazz4dI1BBUjX18wp9iFHz3Kk7fls0Y0m"
+      MINIO_BUCKET: "test"
+    depends_on:
+      - db
+      - minio
+  fraud-detection-portal:
+    image: reidlai/cp630-fraud-detection-portal:latest
+    container_name: cp630-fraud-detection-portal
+    ports:
+      - "3000:3000"
+    networks:
+      - public-network
+    environment:
+      VITE_PAYMENT_REQUEST_API_URL: "http://payment-solution:8080"
+    depends_on:
+      - payment-solution
+    
+networks:
+  public-network:
+    driver: bridge
+
+volumes:
+  minio-data:
+  pg-data:
+  mageai-data:
+
+```
+
+The main objective was to develop a working solution that would be suitable for local testing and relating to being offline. In this case, Docker Compose comes in handy since the developer is able to deploy the entire stack on his workstation without the need to configure a cluster or have a cloud infrastructure. Since the project is developed via the use of Docker Compose, every member of the project can have the same or similar environment on their machines assuring the uniformity of the development, testing and deployment environments.
+
+Taking into consideration the time constraints and the goals set for this project, employing Docker Compose was the simplest means of deploying and thorough testing of the system’s functionalities in entirety with no need to spend time learning or configuring supranational tools such as Kubernetes. The project consists of a number of microservices (payment processing, fraud detection and notification services), and there is no need for this, since Docker Compose facilitate the communication between these services by providing the necessary containers and integrating networking between them automatically.
+
+Docker Compose was suitable for this PoC, however, the solution has been developed with scalability and future deployment cases in mind. By the time the project matures and is ready for the production phase, other tools for orchestration such as Docker Swarm or Kubernetes can provide support for load balancing, enhanced availability, and better deployment features.
+
+The Docker Swarm application attaches support for the Docker Compose format to help with the optimal management of configurations written in docker-compose.yml. Using Docker Compose can help ease the process of configuring a project for a distributed cluster environment, making it very straightforward. Docker Swarm is exceptionally powerful because it offers service replication, load balancing, and node failover, making the solution perfect for small to medium production use. There is no need for a deep learning curve because Docker CLI is already tightly integrated with Docker Swarm. This technology can be deployed to the cloud or on-site on several nodes, making it resilient and more efficient than deploying it on a single machine.
+
+Kubernetes, aliases K8s, is currently the most popular and used container orchestration tool with capabilities such as auto-scaling, service discovery, rolling updates and self-healing. It horizontally scales the services the system offers, which is vital for a fraud detection system that needs to handle a very high number of transactions in real time. Such a versatility enables a system to accommodate increased transaction and user traffic. Robust networking (such as ingress controllers for routing traffic) and security features (such as role-based access control and factoring in secrets management) which are necessary for production deployments are offered by Kubernetes. All major providers of cloud technology (AWS EKS, Google GKE, Azure AKS etc), endorse the use of Kubernetes, hence easing the process of cloud deployment for better accessibility. It is easily integrated into a CI/CD pipeline, which allows for deployments, testing, and even monitoring to be automated. This is going to enhance the delivery workflow of the later iterations.
+
+If there is a need to transform a Docker Compose file into a Kubernetes Deployment and StatefulSet manifests, Kompose can be used to create the required Kubernetes resource files from the Docker config automatically.
+
+#### Quick Start
+
+##### Git Pull Repository
+
+This whole project source code can be found at my GitHub repository https://github.com/reidlai/cp630-final-project.  Everyone can use git to pull the repository by the following command.
+
+```java
+$> git clone https://github.com/reidlai/cp630-final-project
+```
+
+##### Docker Image and Docker Compose
+
+Run the following comand to start all container instances using docker compose without installation.
+
+```java
+$> cd cp630-final-project
+$> docker compose up
+```
+
+Docker compose will pull all pre-built images from my Docker Hub repository.
+
+Or invidiual container can be pull by following command
+
+```java
+$> docker pull reidlai/cp630-mageai
+$> docker pull reidlai/cp630-payment-solution
+$> docker pull reidlai/cp630-fraud-detection-portal
+```
+
+##### Built from Source
+
+**data-processing sub-project**
+
+This sub-project can directly run [Mage](http://Mage.AI)AI docker image with volume binding with default folder
+
+```java
+$> cd $FINAL_PROJECT_HOME/project/data-processing
+$>
+$> # After docker running, can use browser to visit http://localhost:6789
+$> docker run -it -p 6789:6789 -v $(pwd):/home/src mageai/mageai /app/run_app.sh mage start
+```
+
+**mlops-pipeline sub-project**
+
+This is just a placeholder folder which maintain copy of Jupyter Notebook and pre-built staging folder “data”. Before running steps in Jupyter notebook, please make Python 3.11 is install and install required modules as the following command.  
+
+```java
+$> cd $FINAL_PROJECT_HOME/project/mlops-pipeline
+$> pip install -r requirements.txt
+$> # Dockerfile is also available in this folder
+```
+
+**payment-solution sub-project**
+
+This sub-project is required Java 17 SDK and Gradle 8.10 pre-installed.  After installation, the following command can be run to build app.jar.  But please do not run app.jar because there is dependency on PostgreSQL 16 and MailHog.  Gradle command below can be used to run OpenAPI Generator, unit tests, jar building, and javadoc generation.
+
+```java
+$> cd $FINAL_PROJECT_HOME/project/mlops-pipeline
+$> gradle clean build
+$> # Dockerfile is also available in this folder
+```
+
+**fraud-detection-portal**
+
+This sub-project is based on SvelteKit technical stack running inside NodeJS 22.  Please run the following command to build the application.
+
+```java
+$> cd $FINAL_PROJECT_HOME/project/fraud-detection-portal
+$> npm run build
+$> docker compose up -d mailhog db payment-solution 
+$> npm run dev 
+$> # # Dockerfile is also available in this folder
+```
 
 
 ### R7 Create web services (SOAP, RESTful) to use the data service components.
 
- 
-
-Complete? (Yes/No) 
+Complete? (Yes/No) Yes
 
 If Yes, briefly describe: 
 
 1. what you have done, 
 2. what are the new features. 
 3. Take some screen to demonstrate the features if applicable. 
+
+### OpenAPI and OpenAPI Generator
+
+The  sequence diagram in Figure 21 is utilized to create the OpenAPI specification for API development. This technique was highly effective as it enabled us to visualize the design and user interactions, thus simplifying the entire process.
+
+<figure>
+  <img src="images/swagger_editor.png" alt="" style="width: 90%;">
+  <figcaption>Figure 24 - OpenAPI Spec Preview in Swagger Editor</figcaption>
+</figure>
+
+OpenAPI has numerous advantages and allows for automated integration testing as well as debugging. It integrates platforms and applications easily, making it easier to ensure interoperability of separate pieces. Outsourcing projects to human developers who depend on a mix of language paradigms becomes less troubling, as OpenAPI functions as a universal interface all people and machines can comprehend.
+
+Generating an interface for a SpringBoot Rest Controller bundled inside gradle task is one of the most beneficial features of Open API. It serves to reduce time spent on development because boilerplate code is generated automatically, minimizing the chances of error and inconsistency. OpenAPI guarantees that the endpoint services are in perfect alignment with the design, resulting in an accurate, reliable and high-quality API.
+
+```
+// inside build.grade
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$projectDir/src/main/resources/payment-solution-apis.yaml"
+    outputDir = "$buildDir/generated-sources/openapi"
+    apiPackage = "cp630oc.paymentsolution.paymentprocessingservice.api"
+    modelPackage = "cp630oc.paymentsolution.paymentprocessingservice.model"
+    configOptions = [
+        dateLibrary: "java8",
+        interfaceOnly: "true",
+        useSpringBoot3: "true",
+        skipDefaultInterface: "true",
+        useTags: "true",
+        documentationProvider: "springdoc",
+        openApiNullable: "false",
+        useOptional: "false",
+        swaggerAnnotations: "false",
+        useSpringController: "true"
+    ]
+    templateDir = "$projectDir/src/main/resources/api"
+}
+```
+
+OpenAPI facilitates early debugging of discrepancies and breakages that are associated with the integration of the API due to its capacity to validate the delivered code. Validating the code against specifications is increasingly becoming crucial, especially for complicated API, as it saves the specialists time and shields the systems from bugs. 
+
+Detail code snippet cab be found in section of Requirement 5 (R5) while the source of Open API specification can be located at <project_root>/project/payment-solution/src/main/resource/payment-solution-apis.yaml.
 
 
 ### R8 Create web user interface/mobile applications to use the application/web services.
 
  
 
-Complete? (Yes/No) 
+Complete? (Yes/No) Yes
 
 If Yes, briefly describe: 
 
 1. what you have done, 
 2. what are the new features. 
 3. Take some screen to demonstrate the features if applicable. 
+
+#### Fraud Detection Portal (Web UI)
+
+The lives of Web developers, Software Engineers and Graphic Designers are full of the crafting of mockups and wireframes that help in the overall development of an application. Various features and the overall layout of the application is defined with the help of these mockups. But, these mockups and wireframes enable the developers to gain a sense of what the application may look like with these modifying attributes. However, this entire process is diagnosed within the application life cycle of development, which usually begins when a concept gets approved.
+
+Nonetheless, the building of these mockups and wireframes was ignored in the case since practitioners wanted to practice the engineering part of the software rather than focus on finding time-based issues. There is no denying that structural sketches and building system mockups are vital in the development of systems since they weren’t constructed during the cycle or design phase and they assist in linking back to the design model. As the development cycle progresses, the structural sketches and building system mockups are built through the construction of user flows which allow the stakeholders and the outlines of the solutions to make changes prior to the real work being started.
+
+#### Svelte and SvelteKit with TailwindCSS
+
+For this project, Svelte and SvelteKit have been employed as Single Page Application Web UI framework in which Svelte is a client-side rendering tool while SvelteKit is a server-side rendering and Typescript integrated application. While Java based Enterprise frameworks such as SpringBoot can also serve as web controllers, they do tend to have server-side rendering features which require the user to refresh the page every time any button is pressed, which might on some occassions interfere with the design of the user experience.
+
+Figures 25 and 26 seem to provide a distant glimpse of the UI design but the flow provides a clear demonstration of what the daily operations look like from the perspective of a security officer without requiring too much in terms of coding and time.
+
+<figure>
+  <img src="images/routes_+page.svelte.png" alt="" style="width: 50%;">
+  <figcaption>Figure 25 - Web Application Home Page</figcaption>
+</figure>
+
+<figure>
+  <img src="images/routes_transaction_[id]_+page.svelte.png" alt="" style="width: 50%;">
+  <figcaption>Figure 26 - Payment Request Details (Security Officer Perspective)</figcaption>
+</figure>
+
+Each component in Svelte corresponds to a .svelte file which encapsulates its HTML structure, script, and style elements. New components can be added by adding a new .svelte file, ensuring there’s a connection to the other components via props, stores and events. For example, you can use props to specify custom attributes available on the child component, or utilize Svelte stores to allow data sharing between components.
+
+Using the API during the mounting process is done through the onMount lifecycle function within the Svelte component, where data is received after the component has loaded.
+
+```java
+# src/routes/+page.svelte - The main page of SvelteKit application
+
+<script>
+    import { goto } from '$app/navigation';
+    import SearchBox from '$lib/components/SearchBox.svelte';
+    import TransactionTable from '$lib/components/TransactionTable.svelte';
+    import { searchTransactions } from '$lib/api';
+    import { searchStore } from '$lib/stores/searchStore';
+
+    let transactions = [];
+    let error = null;
+    let loading = false;
+
+    // Subscribe to the store
+    $: transactions = $searchStore.transactions;
+
+    async function handleSearch(event) {
+        try {
+            loading = true; 
+            error = null;
+            transactions = await searchTransactions(event.detail);
+            searchStore.setSearch(event.detail, transactions);
+        } catch (e) {
+            error = e.message;
+            transactions = [];
+        } finally {
+            loading = false; // Set loading to false when search completes or fails
+        }
+    }
+
+    function handleSelect(event) {
+        goto(`/transaction/${event.detail}`);
+    }
+</script>
+
+<h1>Fraud Detection Portal</h1>
+
+<SearchBox initialValue={$searchStore.cardNumber} on:search={handleSearch} />
+
+{#if loading}
+    <div class="flex items-center justify-center p-8">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <p class="ml-3 text-gray-600">Searching transactions...</p>
+    </div>
+{:else if error}
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mt-4 text-red-700">
+        {error}
+    </div>
+{:else if transactions.length > 0}
+    <TransactionTable 
+        {transactions} 
+        on:select={handleSelect}
+    />
+{/if}
+```
+
+```java
+# src/routes/transaction/[id]/+page.svelte - Payment Request Details Component
+
+<script lang="ts">
+    import { onMount } from 'svelte';
+    import type { PaymentRequest } from '$lib/types';
+    
+    import { getTransactionDetail } from '$lib/api';
+
+    export let transactionId: string;
+
+    let transaction: PaymentRequest | null = null;
+    let error: string | null = null;
+    let loading = true;
+
+    onMount(async () => {
+        try {
+            // const transactionData = await fetch(`http://localhost:8080/payment-request?id=${transactionId}`).then(r => r.json());  
+            const transactionData = await getTransactionDetail(transactionId);
+            transaction = transactionData;
+            loading = false;
+        } catch (e) {
+            error = e instanceof Error ? e.message : 'An error occurred';
+            loading = false;
+        }
+    });
+
+</script>
+<div class="max-w-4xl mx-auto p-4 space-y-6">
+    <!-- Loading State -->
+    {#if loading}
+        <div class="flex justify-center items-center h-32">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+    <!-- Error State -->
+    {:else if error}
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+            <p>{error}</p>
+            <button 
+                class="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+                on:click={() => window.location.reload()}
+            >
+                Retry
+            </button>
+        </div>
+    <!-- Content -->
+    {:else}
+        <!-- Payment Request Details  -->
+        <div class="bg-white rounded-lg p-6 mb-8 shadow-md">
+            <h3 class="text-gray-700 mb-4 border-b-2 border-gray-200 pb-2">Payment Request Details</h3>
+            <div class="grid grid-cols-2 gap-y-3 gap-x-8 items-center">
+                <div class="font-medium text-gray-700">Transaction ID:</div>
+                <div class="text-gray-900">{transaction.id}</div>
+                
+                <div class="font-medium text-gray-700">Amount:</div>
+                <div class="text-gray-900">${transaction.transactionAmount}</div>
+                
+                <div class="font-medium text-gray-700">Date:</div>
+                <div class="text-gray-900">{new Date(transaction.transactionDatetime).toLocaleString()}</div>
+                
+                <div class="font-medium text-gray-700">Type:</div>
+                <div class="text-gray-900">{transaction.transactionType}</div>
+                
+                <div class="font-medium text-gray-700">Merchant:</div>
+                <div class="text-gray-900">
+                    {transaction.merchantId}<br>
+                    <span class="text-sm text-gray-500">{transaction.merchantMccCode}</span>
+                </div>
+                
+                <div class="font-medium text-gray-700">Location:</div>
+                <div class="text-gray-900">
+                    {transaction.merchantCity}, {transaction.merchantState} {transaction.merchantZip}
+                </div>
+                
+                <div class="font-medium text-gray-700">Fraud Detection:</div>
+                <div class="text-gray-900">
+                    <span class={transaction.fraudDetected ? 'text-red-600 font-bold' : 'text-green-600'}>
+                        {transaction.fraudDetected ? 'Yes' : 'No'}
+                    </span>
+                </div>
+            </div>
+        </div>
+    {/if}
+</div>
+```
+
+Detail API call call be found in R5.
 
 
 ### R9 Test your services, log your services, and document your term project.

@@ -1,11 +1,11 @@
 package cp630oc.paymentsolution.modelinferenceservice;
 
-import ai.onnxruntime.*;
-import jakarta.annotation.PostConstruct;  // Add this
+import ai.onnxruntime.*; // impport Microsoft ONNXRuntime 
+import jakarta.annotation.PostConstruct; 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.slf4j.Logger;
+import org.slf4j.Logger;    
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
