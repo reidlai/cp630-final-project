@@ -1384,6 +1384,12 @@ $> gradle clean build
 $> # Dockerfile is also available in this folder
 ```
 
+In addition, all unit tests can run as the following command
+
+```
+$> gradle test -i
+```
+
 **fraud-detection-portal**
 
 This sub-project is based on SvelteKit technical stack running inside NodeJS 22.  Please run the following command to build the application.
@@ -1637,14 +1643,97 @@ Detail API call call be found in R5.
 ### R9 Test your services, log your services, and document your term project.
 
  
-
-Complete? (Yes/No) 
+Complete? (Yes/No) Yes
 
 If Yes, briefly describe: 
 
 1. what you have done, 
 2. what are the new features. 
 3. Take some screen to demonstrate the features if applicable. 
+
+#### Unit Tests
+
+All payment solution unit tests can be found at <project_root>/project/payment-solution. All these tests can be run by the following command and all test detail logs will be output to console. But test coverage of this sub-project did not reach 80% due to limited time frame.
+
+```
+$> cd $FINAL_PROJECT_HOME/project/payment-solution
+$> gradle test -i
+```
+
+Test reports can be found at <project_root>/project/payment-solution/build/reports/tests/test/index.html.
+
+<figure>
+  <img src="images/unittests_report.png" alt="" style="width: 50%;">
+  <figcaption>Figure 27 - Unit Test Report</figcaption>
+</figure>
+
+Mockito is a mocking tool used with JUnit for unit testing in this application. With regard to Spring Boot applications, Mockito comes in handy as it gives developer the opportunity to construct and employ mock objects. That means the class or method which is being examined is decoupled from its dependencies which is the essence of unit tests. The main goal of unit tests is to validate a single piece of code in a dettached manner from the remaining system.
+
+### Bruno
+
+Under project folder, there is a directory called bruno.  This is API integration test to verify all API endpoint working same as OpenAPI specation.  This folder can directly import into Burno Desktop as Collection or use Bruno CLI to run invidual script.
+
+<figure>
+  <img src="images/bruno.png" alt="" style="width: 50%;">
+  <figcaption>Figure 28 - Bruno Desktop</figcaption>
+</figure>
+
+```java
+# Bruno script code snippet
+
+meta {
+  name: Create Success Payment Request
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/payment-request
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+  Authorization: Bearer Token 1234567890
+  X-Api-Key: 1234567890
+  X-Notification: true
+  Connection: keep-alive
+  Keep-Alive: timeout=60
+}
+
+body:json {
+    {
+      "transactionDatetime": "2024-12-08T15:15:15.265Z",
+      "transactionAmount": 146,
+      "transactionType": "Chip Transaction",
+      "merchantId": "-112121233619748226",
+      "merchantCity": "Rome",
+      "merchantMccCode": "3509",
+      "cardNumber": "5476407228285230",
+      "cvvCode": "688",
+      "cardExpirationDate": "2022-11-01",
+      "cardHolderFirstName": "Milani",
+      "cardHolderLastName": "Merkel",
+      "cardHolderBillingAddress": "Unit 87, 524 Ocean Drive",
+      "cardHolderBillingCity": "Houston",
+      "cardHolderBillingState": "TX",
+      "cardHolderBillingZip": "77056",
+      "cardHolderBillingCountry": "United States"
+    }
+  
+}
+```
+
+#### Javadoc
+
+After running "gradle clean build", javadoc task will generate all javadoc under <project_root>/project/payment-solution/build/docs/javadoc. Open <project_root>/project/payment-solution/build/docs/javadoc/index.html to view all detail class documents.
+
+<figure>
+  <img src="images/javadoc_index.png" alt="" style="width: 50%;">
+  <figcaption>Figure 29 -Javadoc Index Page</figcaption>
+</figure>
 
 
 ### R10 Demonstrate your term project in final project presentation, slides, short video.
