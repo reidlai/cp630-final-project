@@ -1083,7 +1083,122 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
 
 ###### JPA and Hibernate
 
-SpringBoot simplifies the development process through its JPA, Hibernate and @Entity and @Repository annotations. JPA also provides a level of abstraction over JDBC, allowing for easier application to database interactions. Hibernate is one of the JPA specification implementations that adds addtitional features such as caching and dirty checking. The @Entity annotation indicates that a Java class will be treated as an entity which will be mapped to a database table. Each instance of the entity will correspond to one row in the table while the entity’s fields will correspond to the columns of the table. This enhances the interaction of the programmer with the database on the object oriented level. To indicate that some class is functioning as a repository and should be automatically discovered via Spring’s component scan the interface must be annotated with @Repository. This annotation enhances the efficiency of coding and automatic code generation by minimizing the amount of boilerplate and automatically generating bean definition language files. It translates any technology-driven specific exceptions into non-thread-safe unified data access exceptions of the Spring framework. The efforts of JPA, Hibernate, and the incorporated annotations @Entity and @Repository are resulted in fast development since they cut down manual effort in coding which makes code reuse and maintainability better.
+SpringBoot simplifies the development process through its JPA, Hibernate and @Entity and @Repository annotations. JPA also provides a level of abstraction over JDBC, allowing for easier application to database interactions. Hibernate is one of the JPA specification implementations that adds addtitional features such as caching and dirty checking. The @Entity annotation indicates that a Java class will be treated as an entity which will be mapped to a database table and maintain database schema migration automatically. Each instance of the entity will correspond to one row in the table while the entity’s fields will correspond to the columns of the table. This enhances the interaction of the programmer with the database on the object oriented level. To indicate that some class is functioning as a repository and should be automatically discovered via Spring’s component scan the interface must be annotated with @Repository. This annotation enhances the efficiency of coding and automatic code generation by minimizing the amount of boilerplate and automatically generating bean definition language files. It translates any technology-driven specific exceptions into non-thread-safe unified data access exceptions of the Spring framework. The efforts of JPA, Hibernate, and the incorporated annotations @Entity and @Repository are resulted in fast development since they cut down manual effort in coding which makes code reuse and maintainability better.
+
+```java
+# Example of Transaction State Entity
+package cp630oc.paymentsolution.paymentrequeststore.entity;
+
+import jakarta.persistence.*;
+import java.util.Date;
+
+/**
+ * The transaction entity.
+ */
+@Entity
+@Table(name = "transaction_states")
+public class TransactionState {
+
+    @EmbeddedId
+    private TransactionStateId id;
+
+    @ManyToOne
+    @JoinColumn(name = "id", insertable = false, updatable = false)
+    private Transaction transaction;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "createdAt", nullable = false)
+    private Date createdAt;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "updatedAt", nullable = false)
+    private Date updatedAt;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "deletedAt", nullable = true)
+    private Date deletedAt;
+
+    /**
+     * Get the transaction state ID.
+     * @return the transaction state ID
+     */
+    public TransactionStateId getId() {
+        return id;
+    }
+
+    /**
+     * Set the transaction state ID.
+     * @param id the transaction state ID
+     */
+    public void setId(TransactionStateId id) {
+        this.id = id;
+    }
+
+    /**
+     * Get the transaction.
+     * @return the transaction
+     */
+    public Transaction getTransaction() {
+        return transaction;
+    }
+
+    /**
+     * Set the transaction.
+     * @param transaction the transaction
+     */
+    public void setTransaction(Transaction transaction) {
+        this.transaction = transaction;
+    }
+
+    /**
+     * Get the creation date and time.
+     * @return the creation date and time
+     */
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    /**
+     * Set the creation date and time.
+     * @param createdAt the creation date and time
+     */
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    /**
+     * Get the update date and time.
+     * @return the transaction date and time
+     */
+    public Date getUpdatedAt() {
+        return createdAt;
+    }
+
+    /**
+     * Set the update date and time.
+     * @param updatedAt the update date and time
+     */
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    /**
+     * Get the deletion date and time.
+     * @return the deletion date and time
+     */
+    public Date getDeletedAt() {
+        return deletedAt;
+    }
+
+    /**
+     * Set the deletion date and time.
+     * @param deletedAt the deletion date and time
+     */
+    public void setDeletedAt(Date deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+}
+```
 
 Also, it makes it possible for the developers to create business logic rather than concern themselves with the complexities of a database which in turn boosts productivity and effectiveness.
 
@@ -1724,6 +1839,31 @@ body:json {
     }
   
 }
+```
+
+#### Logging
+
+For this project robust and structured logging framework is used which is a part of Spring Boot and uses the SLF4J with Logback as its default implementation. The application has seamless integration of different components that permit visibility in the application activities which include handling messages, processing payment requests and fraud detection. The logger is employed to monitor events such as the persistence of the transaction data, fraud detection result values from querying the ONNX model, and the status of notifications that were sent to users. The interactions at the debug level such as saving of transactions and the states of operations are captured while error-level loggers oversee the exceptions raised to ensure prompt diagnosis of issues. All the logs and configurations are stored in a central configuration to allow for easy changing of log levels, and output formats of either file-based or console to cater for various deployment environments. Such an approach aids in effective debugging while still in the development mode or provides useful detailed information for monitoring while in production.
+
+Here is the default logging setting in this SpringBoot sub-project. These setting can be override using environment variable if necessary.  In this application, logger was not used everywhere is the application.  It was just used to troubleshoot API troubleshooting.
+
+```java
+# src/main/resources/application-dev.yml
+
+...
+logging:
+  level:
+    root: DEBUG
+    cp630oc.paymentsolution: DEBUG
+    org.springframework: INFO
+    org.hibernate: ERROR
+    com.zaxxer.hikari: ERROR
+    org.postgresql: ERROR
+    org.apache.catalina.core.AprLifecycleListener: ERROR
+    org.apache.tomcat.util.compat.Jre18Compat: ERROR
+    org.apache.tomcat.util.compat.Jre19Compat: ERROR
+    org.apache.tomcat.util.compat.Jre21Compat: ERROR
+    org.apache.tomcat.util.compat.Jre22Compat: ERROR
 ```
 
 #### Javadoc

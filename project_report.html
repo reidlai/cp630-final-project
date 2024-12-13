@@ -1625,103 +1625,216 @@ one of the JPA specification implementations that adds addtitional
 features such as caching and dirty checking. The <span class="citation"
 data-cites="Entity">@Entity</span> annotation indicates that a Java
 class will be treated as an entity which will be mapped to a database
-table. Each instance of the entity will correspond to one row in the
-table while the entity’s fields will correspond to the columns of the
-table. This enhances the interaction of the programmer with the database
-on the object oriented level. To indicate that some class is functioning
-as a repository and should be automatically discovered via Spring’s
-component scan the interface must be annotated with <span
-class="citation" data-cites="Repository">@Repository</span>. This
-annotation enhances the efficiency of coding and automatic code
-generation by minimizing the amount of boilerplate and automatically
-generating bean definition language files. It translates any
-technology-driven specific exceptions into non-thread-safe unified data
-access exceptions of the Spring framework. The efforts of JPA,
-Hibernate, and the incorporated annotations <span class="citation"
-data-cites="Entity">@Entity</span> and <span class="citation"
-data-cites="Repository">@Repository</span> are resulted in fast
-development since they cut down manual effort in coding which makes code
-reuse and maintainability better.</p>
+table and maintain database schema migration automatically. Each
+instance of the entity will correspond to one row in the table while the
+entity’s fields will correspond to the columns of the table. This
+enhances the interaction of the programmer with the database on the
+object oriented level. To indicate that some class is functioning as a
+repository and should be automatically discovered via Spring’s component
+scan the interface must be annotated with <span class="citation"
+data-cites="Repository">@Repository</span>. This annotation enhances the
+efficiency of coding and automatic code generation by minimizing the
+amount of boilerplate and automatically generating bean definition
+language files. It translates any technology-driven specific exceptions
+into non-thread-safe unified data access exceptions of the Spring
+framework. The efforts of JPA, Hibernate, and the incorporated
+annotations <span class="citation" data-cites="Entity">@Entity</span>
+and <span class="citation" data-cites="Repository">@Repository</span>
+are resulted in fast development since they cut down manual effort in
+coding which makes code reuse and maintainability better.</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a># Example of Transaction <span class="bu">State</span> <span class="bu">Entity</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> cp630oc</span><span class="op">.</span><span class="im">paymentsolution</span><span class="op">.</span><span class="im">paymentrequeststore</span><span class="op">.</span><span class="im">entity</span><span class="op">;</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">jakarta</span><span class="op">.</span><span class="im">persistence</span><span class="op">.*;</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">util</span><span class="op">.</span><span class="im">Date</span><span class="op">;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a> <span class="co">*</span> The transaction entity<span class="co">.</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a> <span class="co">*/</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="at">@Entity</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="at">@Table</span><span class="op">(</span>name <span class="op">=</span> <span class="st">&quot;transaction_states&quot;</span><span class="op">)</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="kw">class</span> TransactionState <span class="op">{</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">@EmbeddedId</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> TransactionStateId id<span class="op">;</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">@ManyToOne</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">@JoinColumn</span><span class="op">(</span>name <span class="op">=</span> <span class="st">&quot;id&quot;</span><span class="op">,</span> insertable <span class="op">=</span> <span class="kw">false</span><span class="op">,</span> updatable <span class="op">=</span> <span class="kw">false</span><span class="op">)</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> Transaction transaction<span class="op">;</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Temporal</span><span class="op">(</span>TemporalType<span class="op">.</span><span class="fu">TIMESTAMP</span><span class="op">)</span></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Column</span><span class="op">(</span>name <span class="op">=</span> <span class="st">&quot;createdAt&quot;</span><span class="op">,</span> nullable <span class="op">=</span> <span class="kw">false</span><span class="op">)</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="bu">Date</span> createdAt<span class="op">;</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Temporal</span><span class="op">(</span>TemporalType<span class="op">.</span><span class="fu">TIMESTAMP</span><span class="op">)</span></span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Column</span><span class="op">(</span>name <span class="op">=</span> <span class="st">&quot;updatedAt&quot;</span><span class="op">,</span> nullable <span class="op">=</span> <span class="kw">false</span><span class="op">)</span></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="bu">Date</span> updatedAt<span class="op">;</span></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Temporal</span><span class="op">(</span>TemporalType<span class="op">.</span><span class="fu">TIMESTAMP</span><span class="op">)</span></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Column</span><span class="op">(</span>name <span class="op">=</span> <span class="st">&quot;deletedAt&quot;</span><span class="op">,</span> nullable <span class="op">=</span> <span class="kw">true</span><span class="op">)</span></span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="bu">Date</span> deletedAt<span class="op">;</span></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>    <span class="co">/**</span></span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> Get the transaction state ID<span class="co">.</span></span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> <span class="an">@return</span> the transaction state ID</span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>     <span class="co">*/</span></span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> TransactionStateId <span class="fu">getId</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> id<span class="op">;</span></span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a>    <span class="co">/**</span></span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> Set the transaction state ID<span class="co">.</span></span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> <span class="an">@param</span><span class="co"> </span><span class="an">id</span><span class="co"> </span>the transaction state ID</span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a>     <span class="co">*/</span></span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">setId</span><span class="op">(</span>TransactionStateId id<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">id</span> <span class="op">=</span> id<span class="op">;</span></span>
+<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a>    <span class="co">/**</span></span>
+<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> Get the transaction<span class="co">.</span></span>
+<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> <span class="an">@return</span> the transaction</span>
+<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a>     <span class="co">*/</span></span>
+<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> Transaction <span class="fu">getTransaction</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> transaction<span class="op">;</span></span>
+<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb12-56"><a href="#cb12-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a>    <span class="co">/**</span></span>
+<span id="cb12-58"><a href="#cb12-58" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> Set the transaction<span class="co">.</span></span>
+<span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> <span class="an">@param</span><span class="co"> </span><span class="an">transaction</span><span class="co"> </span>the transaction</span>
+<span id="cb12-60"><a href="#cb12-60" aria-hidden="true" tabindex="-1"></a>     <span class="co">*/</span></span>
+<span id="cb12-61"><a href="#cb12-61" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">setTransaction</span><span class="op">(</span>Transaction transaction<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb12-62"><a href="#cb12-62" aria-hidden="true" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">transaction</span> <span class="op">=</span> transaction<span class="op">;</span></span>
+<span id="cb12-63"><a href="#cb12-63" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb12-64"><a href="#cb12-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-65"><a href="#cb12-65" aria-hidden="true" tabindex="-1"></a>    <span class="co">/**</span></span>
+<span id="cb12-66"><a href="#cb12-66" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> Get the creation date and time<span class="co">.</span></span>
+<span id="cb12-67"><a href="#cb12-67" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> <span class="an">@return</span> the creation date and time</span>
+<span id="cb12-68"><a href="#cb12-68" aria-hidden="true" tabindex="-1"></a>     <span class="co">*/</span></span>
+<span id="cb12-69"><a href="#cb12-69" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="bu">Date</span> <span class="fu">getCreatedAt</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb12-70"><a href="#cb12-70" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> createdAt<span class="op">;</span></span>
+<span id="cb12-71"><a href="#cb12-71" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb12-72"><a href="#cb12-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-73"><a href="#cb12-73" aria-hidden="true" tabindex="-1"></a>    <span class="co">/**</span></span>
+<span id="cb12-74"><a href="#cb12-74" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> Set the creation date and time<span class="co">.</span></span>
+<span id="cb12-75"><a href="#cb12-75" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> <span class="an">@param</span><span class="co"> </span><span class="an">createdAt</span><span class="co"> </span>the creation date and time</span>
+<span id="cb12-76"><a href="#cb12-76" aria-hidden="true" tabindex="-1"></a>     <span class="co">*/</span></span>
+<span id="cb12-77"><a href="#cb12-77" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">setCreatedAt</span><span class="op">(</span><span class="bu">Date</span> createdAt<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb12-78"><a href="#cb12-78" aria-hidden="true" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">createdAt</span> <span class="op">=</span> createdAt<span class="op">;</span></span>
+<span id="cb12-79"><a href="#cb12-79" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb12-80"><a href="#cb12-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-81"><a href="#cb12-81" aria-hidden="true" tabindex="-1"></a>    <span class="co">/**</span></span>
+<span id="cb12-82"><a href="#cb12-82" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> Get the update date and time<span class="co">.</span></span>
+<span id="cb12-83"><a href="#cb12-83" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> <span class="an">@return</span> the transaction date and time</span>
+<span id="cb12-84"><a href="#cb12-84" aria-hidden="true" tabindex="-1"></a>     <span class="co">*/</span></span>
+<span id="cb12-85"><a href="#cb12-85" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="bu">Date</span> <span class="fu">getUpdatedAt</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb12-86"><a href="#cb12-86" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> createdAt<span class="op">;</span></span>
+<span id="cb12-87"><a href="#cb12-87" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb12-88"><a href="#cb12-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-89"><a href="#cb12-89" aria-hidden="true" tabindex="-1"></a>    <span class="co">/**</span></span>
+<span id="cb12-90"><a href="#cb12-90" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> Set the update date and time<span class="co">.</span></span>
+<span id="cb12-91"><a href="#cb12-91" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> <span class="an">@param</span><span class="co"> </span><span class="an">updatedAt</span><span class="co"> </span>the update date and time</span>
+<span id="cb12-92"><a href="#cb12-92" aria-hidden="true" tabindex="-1"></a>     <span class="co">*/</span></span>
+<span id="cb12-93"><a href="#cb12-93" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">setUpdatedAt</span><span class="op">(</span><span class="bu">Date</span> updatedAt<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb12-94"><a href="#cb12-94" aria-hidden="true" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">updatedAt</span> <span class="op">=</span> updatedAt<span class="op">;</span></span>
+<span id="cb12-95"><a href="#cb12-95" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb12-96"><a href="#cb12-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-97"><a href="#cb12-97" aria-hidden="true" tabindex="-1"></a>    <span class="co">/**</span></span>
+<span id="cb12-98"><a href="#cb12-98" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> Get the deletion date and time<span class="co">.</span></span>
+<span id="cb12-99"><a href="#cb12-99" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> <span class="an">@return</span> the deletion date and time</span>
+<span id="cb12-100"><a href="#cb12-100" aria-hidden="true" tabindex="-1"></a>     <span class="co">*/</span></span>
+<span id="cb12-101"><a href="#cb12-101" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="bu">Date</span> <span class="fu">getDeletedAt</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb12-102"><a href="#cb12-102" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> deletedAt<span class="op">;</span></span>
+<span id="cb12-103"><a href="#cb12-103" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb12-104"><a href="#cb12-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-105"><a href="#cb12-105" aria-hidden="true" tabindex="-1"></a>    <span class="co">/**</span></span>
+<span id="cb12-106"><a href="#cb12-106" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> Set the deletion date and time<span class="co">.</span></span>
+<span id="cb12-107"><a href="#cb12-107" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> <span class="an">@param</span><span class="co"> </span><span class="an">deletedAt</span><span class="co"> </span>the deletion date and time</span>
+<span id="cb12-108"><a href="#cb12-108" aria-hidden="true" tabindex="-1"></a>     <span class="co">*/</span></span>
+<span id="cb12-109"><a href="#cb12-109" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">setDeletedAt</span><span class="op">(</span><span class="bu">Date</span> deletedAt<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb12-110"><a href="#cb12-110" aria-hidden="true" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">deletedAt</span> <span class="op">=</span> deletedAt<span class="op">;</span></span>
+<span id="cb12-111"><a href="#cb12-111" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb12-112"><a href="#cb12-112" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Also, it makes it possible for the developers to create business
 logic rather than concern themselves with the complexities of a database
 which in turn boosts productivity and effectiveness.</p>
 <p>All entity classes and repositories interface can be found in pacakge
 cp630.paymentsolution.paymentrequeststore package or can be found in the
 class diagram.</p>
-<div class="sourceCode" id="cb12"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> cp630oc</span><span class="op">.</span><span class="im">paymentsolution</span><span class="op">.</span><span class="im">paymentprocessingservice</span><span class="op">;</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="kw">...</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a> <span class="co">*</span> The payment request REST controller which implements the PaymentRequestApi interface generated </span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a> <span class="co">*</span> by OpenAPI generator<span class="co">.</span></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a> <span class="co">*/</span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="at">@RestController</span></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="at">@CrossOrigin</span><span class="op">(</span></span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    origins <span class="op">=</span> <span class="st">&quot;*&quot;</span><span class="op">,</span></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    allowedHeaders <span class="op">=</span> <span class="op">{</span></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;Content-Type&quot;</span><span class="op">,</span></span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;Accept&quot;</span><span class="op">,</span></span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;Origin&quot;</span><span class="op">,</span></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;X-Notification&quot;</span><span class="op">,</span></span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;Authorization&quot;</span></span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">},</span></span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    methods <span class="op">=</span> <span class="op">{</span></span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>        RequestMethod<span class="op">.</span><span class="fu">GET</span><span class="op">,</span></span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>        RequestMethod<span class="op">.</span><span class="fu">POST</span><span class="op">,</span></span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>        RequestMethod<span class="op">.</span><span class="fu">PUT</span><span class="op">,</span></span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>        RequestMethod<span class="op">.</span><span class="fu">DELETE</span><span class="op">,</span></span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>        RequestMethod<span class="op">.</span><span class="fu">OPTIONS</span></span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>    <span class="op">},</span></span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>    exposedHeaders <span class="op">=</span> <span class="op">{</span></span>
-<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;Access-Control-Allow-Origin&quot;</span><span class="op">,</span></span>
-<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;Access-Control-Allow-Credentials&quot;</span></span>
-<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span>
-<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="kw">class</span> PaymentRequestRESTController <span class="kw">implements</span> PaymentRequestApi<span class="op">,</span> PaymentRequestsApi<span class="op">,</span> PaymentRequestStatusApi<span class="op">,</span> PaymentRequestStatusesApi <span class="op">{</span></span>
-<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>    <span class="kw">...</span></span>
-<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Autowired</span></span>
-<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> TransactionRepository transactionRepository<span class="op">;</span></span>
-<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>    <span class="kw">...</span></span>
-<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Autowired</span></span>
-<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> TransactionStateRepository transactionStateRepository<span class="op">;</span></span>
-<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>        <span class="kw">...</span></span>
-<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>    <span class="co">/**</span></span>
-<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> Create a transaction<span class="co">.</span></span>
-<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> <span class="an">@param</span><span class="co"> </span><span class="an">card</span></span>
-<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> <span class="an">@param</span><span class="co"> </span><span class="an">request</span></span>
-<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> <span class="an">@return</span></span>
-<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> <span class="an">@throws</span><span class="co"> </span><span class="an">Exception</span></span>
-<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a>     <span class="co">*/</span></span>
-<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> Transaction <span class="fu">createTransaction</span><span class="op">(</span>Card card<span class="op">,</span> CreatePaymentRequestRequest request<span class="op">)</span> <span class="kw">throws</span> <span class="bu">Exception</span> <span class="op">{</span></span>
-<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span> <span class="op">{</span></span>
-<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a>            <span class="kw">...</span></span>
-<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a>            <span class="co">// Save transaction</span></span>
-<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a>            logger<span class="op">.</span><span class="fu">debug</span><span class="op">(</span><span class="st">&quot;[{}] Saving transaction ...&quot;</span><span class="op">,</span> TAG<span class="op">);</span></span>
-<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a>            Transaction savedTransaction <span class="op">=</span> transactionRepository<span class="op">.</span><span class="fu">save</span><span class="op">(</span>transaction<span class="op">);</span></span>
-<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="op">(</span>savedTransaction <span class="op">==</span> <span class="kw">null</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a>                logger<span class="op">.</span><span class="fu">debug</span><span class="op">(</span><span class="st">&quot;[{}] Failed to save transaction&quot;</span><span class="op">,</span> TAG<span class="op">);</span></span>
-<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a>                <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">Exception</span><span class="op">(</span><span class="st">&quot;Failed to save transaction&quot;</span><span class="op">);</span></span>
-<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
-<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a>            logger<span class="op">.</span><span class="fu">debug</span><span class="op">(</span><span class="st">&quot;[{}] Transaction saved: {}&quot;</span><span class="op">,</span> TAG<span class="op">,</span> savedTransaction<span class="op">.</span><span class="fu">getId</span><span class="op">());</span></span>
-<span id="cb12-56"><a href="#cb12-56" aria-hidden="true" tabindex="-1"></a>            transactionRepository<span class="op">.</span><span class="fu">flush</span><span class="op">();</span></span>
-<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a>                        <span class="kw">...</span></span>
-<span id="cb12-58"><a href="#cb12-58" aria-hidden="true" tabindex="-1"></a>            <span class="co">// Save transaction state</span></span>
-<span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a>            logger<span class="op">.</span><span class="fu">debug</span><span class="op">(</span><span class="st">&quot;[{}] Saving transaction state ...&quot;</span><span class="op">,</span> TAG<span class="op">);</span></span>
-<span id="cb12-60"><a href="#cb12-60" aria-hidden="true" tabindex="-1"></a>            TransactionState savedTransactionState <span class="op">=</span> transactionStateRepository<span class="op">.</span><span class="fu">save</span><span class="op">(</span>transactionState<span class="op">);</span></span>
-<span id="cb12-61"><a href="#cb12-61" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="op">(</span>savedTransactionState <span class="op">==</span> <span class="kw">null</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb12-62"><a href="#cb12-62" aria-hidden="true" tabindex="-1"></a>                logger<span class="op">.</span><span class="fu">debug</span><span class="op">(</span><span class="st">&quot;[{}] Failed to save transaction state&quot;</span><span class="op">,</span> TAG<span class="op">);</span></span>
-<span id="cb12-63"><a href="#cb12-63" aria-hidden="true" tabindex="-1"></a>                <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">Exception</span><span class="op">(</span><span class="st">&quot;Failed to save transaction state&quot;</span><span class="op">);</span></span>
-<span id="cb12-64"><a href="#cb12-64" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
-<span id="cb12-65"><a href="#cb12-65" aria-hidden="true" tabindex="-1"></a>            logger<span class="op">.</span><span class="fu">debug</span><span class="op">(</span><span class="st">&quot;[{}] Transaction state saved: {}&quot;</span><span class="op">,</span> TAG<span class="op">,</span> savedTransactionState<span class="op">.</span><span class="fu">getId</span><span class="op">());</span></span>
-<span id="cb12-66"><a href="#cb12-66" aria-hidden="true" tabindex="-1"></a>            transactionStateRepository<span class="op">.</span><span class="fu">flush</span><span class="op">();</span></span>
-<span id="cb12-67"><a href="#cb12-67" aria-hidden="true" tabindex="-1"></a>                        <span class="kw">...</span></span>
-<span id="cb12-68"><a href="#cb12-68" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span> <span class="cf">catch</span> <span class="op">(</span><span class="bu">Exception</span> e<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb12-69"><a href="#cb12-69" aria-hidden="true" tabindex="-1"></a>            <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">Exception</span><span class="op">(</span><span class="st">&quot;Failed to create transaction: &quot;</span> <span class="op">+</span> e<span class="op">.</span><span class="fu">getMessage</span><span class="op">());</span></span>
-<span id="cb12-70"><a href="#cb12-70" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
-<span id="cb12-71"><a href="#cb12-71" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb12-72"><a href="#cb12-72" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb12-73"><a href="#cb12-73" aria-hidden="true" tabindex="-1"></a><span class="kw">...</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> cp630oc</span><span class="op">.</span><span class="im">paymentsolution</span><span class="op">.</span><span class="im">paymentprocessingservice</span><span class="op">;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="kw">...</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a> <span class="co">*</span> The payment request REST controller which implements the PaymentRequestApi interface generated </span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a> <span class="co">*</span> by OpenAPI generator<span class="co">.</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a> <span class="co">*/</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="at">@RestController</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="at">@CrossOrigin</span><span class="op">(</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    origins <span class="op">=</span> <span class="st">&quot;*&quot;</span><span class="op">,</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    allowedHeaders <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;Content-Type&quot;</span><span class="op">,</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;Accept&quot;</span><span class="op">,</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;Origin&quot;</span><span class="op">,</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;X-Notification&quot;</span><span class="op">,</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;Authorization&quot;</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">},</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    methods <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>        RequestMethod<span class="op">.</span><span class="fu">GET</span><span class="op">,</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>        RequestMethod<span class="op">.</span><span class="fu">POST</span><span class="op">,</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>        RequestMethod<span class="op">.</span><span class="fu">PUT</span><span class="op">,</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>        RequestMethod<span class="op">.</span><span class="fu">DELETE</span><span class="op">,</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>        RequestMethod<span class="op">.</span><span class="fu">OPTIONS</span></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>    <span class="op">},</span></span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>    exposedHeaders <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;Access-Control-Allow-Origin&quot;</span><span class="op">,</span></span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;Access-Control-Allow-Credentials&quot;</span></span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="kw">class</span> PaymentRequestRESTController <span class="kw">implements</span> PaymentRequestApi<span class="op">,</span> PaymentRequestsApi<span class="op">,</span> PaymentRequestStatusApi<span class="op">,</span> PaymentRequestStatusesApi <span class="op">{</span></span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>    <span class="kw">...</span></span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Autowired</span></span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> TransactionRepository transactionRepository<span class="op">;</span></span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>    <span class="kw">...</span></span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Autowired</span></span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> TransactionStateRepository transactionStateRepository<span class="op">;</span></span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>        <span class="kw">...</span></span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>    <span class="co">/**</span></span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> Create a transaction<span class="co">.</span></span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> <span class="an">@param</span><span class="co"> </span><span class="an">card</span></span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> <span class="an">@param</span><span class="co"> </span><span class="an">request</span></span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> <span class="an">@return</span></span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>     <span class="co">*</span> <span class="an">@throws</span><span class="co"> </span><span class="an">Exception</span></span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>     <span class="co">*/</span></span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> Transaction <span class="fu">createTransaction</span><span class="op">(</span>Card card<span class="op">,</span> CreatePaymentRequestRequest request<span class="op">)</span> <span class="kw">throws</span> <span class="bu">Exception</span> <span class="op">{</span></span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a>            <span class="kw">...</span></span>
+<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a>            <span class="co">// Save transaction</span></span>
+<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a>            logger<span class="op">.</span><span class="fu">debug</span><span class="op">(</span><span class="st">&quot;[{}] Saving transaction ...&quot;</span><span class="op">,</span> TAG<span class="op">);</span></span>
+<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a>            Transaction savedTransaction <span class="op">=</span> transactionRepository<span class="op">.</span><span class="fu">save</span><span class="op">(</span>transaction<span class="op">);</span></span>
+<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="op">(</span>savedTransaction <span class="op">==</span> <span class="kw">null</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a>                logger<span class="op">.</span><span class="fu">debug</span><span class="op">(</span><span class="st">&quot;[{}] Failed to save transaction&quot;</span><span class="op">,</span> TAG<span class="op">);</span></span>
+<span id="cb13-53"><a href="#cb13-53" aria-hidden="true" tabindex="-1"></a>                <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">Exception</span><span class="op">(</span><span class="st">&quot;Failed to save transaction&quot;</span><span class="op">);</span></span>
+<span id="cb13-54"><a href="#cb13-54" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
+<span id="cb13-55"><a href="#cb13-55" aria-hidden="true" tabindex="-1"></a>            logger<span class="op">.</span><span class="fu">debug</span><span class="op">(</span><span class="st">&quot;[{}] Transaction saved: {}&quot;</span><span class="op">,</span> TAG<span class="op">,</span> savedTransaction<span class="op">.</span><span class="fu">getId</span><span class="op">());</span></span>
+<span id="cb13-56"><a href="#cb13-56" aria-hidden="true" tabindex="-1"></a>            transactionRepository<span class="op">.</span><span class="fu">flush</span><span class="op">();</span></span>
+<span id="cb13-57"><a href="#cb13-57" aria-hidden="true" tabindex="-1"></a>                        <span class="kw">...</span></span>
+<span id="cb13-58"><a href="#cb13-58" aria-hidden="true" tabindex="-1"></a>            <span class="co">// Save transaction state</span></span>
+<span id="cb13-59"><a href="#cb13-59" aria-hidden="true" tabindex="-1"></a>            logger<span class="op">.</span><span class="fu">debug</span><span class="op">(</span><span class="st">&quot;[{}] Saving transaction state ...&quot;</span><span class="op">,</span> TAG<span class="op">);</span></span>
+<span id="cb13-60"><a href="#cb13-60" aria-hidden="true" tabindex="-1"></a>            TransactionState savedTransactionState <span class="op">=</span> transactionStateRepository<span class="op">.</span><span class="fu">save</span><span class="op">(</span>transactionState<span class="op">);</span></span>
+<span id="cb13-61"><a href="#cb13-61" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="op">(</span>savedTransactionState <span class="op">==</span> <span class="kw">null</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb13-62"><a href="#cb13-62" aria-hidden="true" tabindex="-1"></a>                logger<span class="op">.</span><span class="fu">debug</span><span class="op">(</span><span class="st">&quot;[{}] Failed to save transaction state&quot;</span><span class="op">,</span> TAG<span class="op">);</span></span>
+<span id="cb13-63"><a href="#cb13-63" aria-hidden="true" tabindex="-1"></a>                <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">Exception</span><span class="op">(</span><span class="st">&quot;Failed to save transaction state&quot;</span><span class="op">);</span></span>
+<span id="cb13-64"><a href="#cb13-64" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
+<span id="cb13-65"><a href="#cb13-65" aria-hidden="true" tabindex="-1"></a>            logger<span class="op">.</span><span class="fu">debug</span><span class="op">(</span><span class="st">&quot;[{}] Transaction state saved: {}&quot;</span><span class="op">,</span> TAG<span class="op">,</span> savedTransactionState<span class="op">.</span><span class="fu">getId</span><span class="op">());</span></span>
+<span id="cb13-66"><a href="#cb13-66" aria-hidden="true" tabindex="-1"></a>            transactionStateRepository<span class="op">.</span><span class="fu">flush</span><span class="op">();</span></span>
+<span id="cb13-67"><a href="#cb13-67" aria-hidden="true" tabindex="-1"></a>                        <span class="kw">...</span></span>
+<span id="cb13-68"><a href="#cb13-68" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span> <span class="cf">catch</span> <span class="op">(</span><span class="bu">Exception</span> e<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb13-69"><a href="#cb13-69" aria-hidden="true" tabindex="-1"></a>            <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">Exception</span><span class="op">(</span><span class="st">&quot;Failed to create transaction: &quot;</span> <span class="op">+</span> e<span class="op">.</span><span class="fu">getMessage</span><span class="op">());</span></span>
+<span id="cb13-70"><a href="#cb13-70" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb13-71"><a href="#cb13-71" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb13-72"><a href="#cb13-72" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb13-73"><a href="#cb13-73" aria-hidden="true" tabindex="-1"></a><span class="kw">...</span></span></code></pre></div>
 <h3
 id="r6-deploy-service-components-onto-enterprise-application-servers.">R6
 Deploy service components onto enterprise application servers.</h3>
@@ -1933,62 +2046,62 @@ automatically.</p>
 <p>This whole project source code can be found at my GitHub repository
 https://github.com/reidlai/cp630-final-project. Everyone can use git to
 pull the repository by the following command.</p>
-<div class="sourceCode" id="cb14"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> git clone https<span class="op">:</span><span class="co">//github.com/reidlai/cp630-final-project</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> git clone https<span class="op">:</span><span class="co">//github.com/reidlai/cp630-final-project</span></span></code></pre></div>
 <h5 id="docker-image-and-docker-compose">Docker Image and Docker
 Compose</h5>
 <p>Run the following comand to start all container instances using
 docker compose without installation.</p>
-<div class="sourceCode" id="cb15"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> cd cp630<span class="op">-</span><span class="dt">final</span><span class="op">-</span>project</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> docker compose up</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> cd cp630<span class="op">-</span><span class="dt">final</span><span class="op">-</span>project</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> docker compose up</span></code></pre></div>
 <p>Docker compose will pull all pre-built images from my Docker Hub
 repository.</p>
 <p>Or invidiual container can be pull by following command</p>
-<div class="sourceCode" id="cb16"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> docker pull reidlai<span class="op">/</span>cp630<span class="op">-</span>mageai</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> docker pull reidlai<span class="op">/</span>cp630<span class="op">-</span>payment<span class="op">-</span>solution</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> docker pull reidlai<span class="op">/</span>cp630<span class="op">-</span>fraud<span class="op">-</span>detection<span class="op">-</span>portal</span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> docker pull reidlai<span class="op">/</span>cp630<span class="op">-</span>mageai</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> docker pull reidlai<span class="op">/</span>cp630<span class="op">-</span>payment<span class="op">-</span>solution</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> docker pull reidlai<span class="op">/</span>cp630<span class="op">-</span>fraud<span class="op">-</span>detection<span class="op">-</span>portal</span></code></pre></div>
 <h5 id="built-from-source">Built from Source</h5>
 <p><strong>data-processing sub-project</strong></p>
 <p>This sub-project can directly run <a href="http://Mage.AI">Mage</a>AI
 docker image with volume binding with default folder</p>
-<div class="sourceCode" id="cb17"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> cd $FINAL_PROJECT_HOME<span class="op">/</span>project<span class="op">/</span>data<span class="op">-</span>processing</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> # After docker running<span class="op">,</span> can use browser to visit http<span class="op">:</span><span class="co">//localhost:6789</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> docker run <span class="op">-</span>it <span class="op">-</span>p <span class="dv">6789</span><span class="op">:</span><span class="dv">6789</span> <span class="op">-</span>v $<span class="op">(</span>pwd<span class="op">):/</span>home<span class="op">/</span>src mageai<span class="op">/</span>mageai <span class="op">/</span>app<span class="op">/</span>run_app<span class="op">.</span><span class="fu">sh</span> mage start</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> cd $FINAL_PROJECT_HOME<span class="op">/</span>project<span class="op">/</span>data<span class="op">-</span>processing</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> # After docker running<span class="op">,</span> can use browser to visit http<span class="op">:</span><span class="co">//localhost:6789</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> docker run <span class="op">-</span>it <span class="op">-</span>p <span class="dv">6789</span><span class="op">:</span><span class="dv">6789</span> <span class="op">-</span>v $<span class="op">(</span>pwd<span class="op">):/</span>home<span class="op">/</span>src mageai<span class="op">/</span>mageai <span class="op">/</span>app<span class="op">/</span>run_app<span class="op">.</span><span class="fu">sh</span> mage start</span></code></pre></div>
 <p><strong>mlops-pipeline sub-project</strong></p>
 <p>This is just a placeholder folder which maintain copy of Jupyter
 Notebook and pre-built staging folder “data”. Before running steps in
 Jupyter notebook, please make Python 3.11 is install and install
 required modules as the following command.</p>
-<div class="sourceCode" id="cb18"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> cd $FINAL_PROJECT_HOME<span class="op">/</span>project<span class="op">/</span>mlops<span class="op">-</span>pipeline</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> pip install <span class="op">-</span>r requirements<span class="op">.</span><span class="fu">txt</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> # Dockerfile is also available in <span class="kw">this</span> folder</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> cd $FINAL_PROJECT_HOME<span class="op">/</span>project<span class="op">/</span>mlops<span class="op">-</span>pipeline</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> pip install <span class="op">-</span>r requirements<span class="op">.</span><span class="fu">txt</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> # Dockerfile is also available in <span class="kw">this</span> folder</span></code></pre></div>
 <p><strong>payment-solution sub-project</strong></p>
 <p>This sub-project is required Java 17 SDK and Gradle 8.10
 pre-installed. After installation, the following command can be run to
 build app.jar. But please do not run app.jar because there is dependency
 on PostgreSQL 16 and MailHog. Gradle command below can be used to run
 OpenAPI Generator, unit tests, jar building, and javadoc generation.</p>
-<div class="sourceCode" id="cb19"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> cd $FINAL_PROJECT_HOME<span class="op">/</span>project<span class="op">/</span>mlops<span class="op">-</span>pipeline</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> gradle clean build</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> # Dockerfile is also available in <span class="kw">this</span> folder</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> cd $FINAL_PROJECT_HOME<span class="op">/</span>project<span class="op">/</span>mlops<span class="op">-</span>pipeline</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> gradle clean build</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> # Dockerfile is also available in <span class="kw">this</span> folder</span></code></pre></div>
 <p>In addition, all unit tests can run as the following command</p>
 <pre><code>$&gt; gradle test -i</code></pre>
 <p><strong>fraud-detection-portal</strong></p>
 <p>This sub-project is based on SvelteKit technical stack running inside
 NodeJS 22. Please run the following command to build the
 application.</p>
-<div class="sourceCode" id="cb21"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> cd $FINAL_PROJECT_HOME<span class="op">/</span>project<span class="op">/</span>fraud<span class="op">-</span>detection<span class="op">-</span>portal</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> npm run build</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> docker compose up <span class="op">-</span>d mailhog db payment<span class="op">-</span>solution </span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> npm run dev </span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> # # Dockerfile is also available in <span class="kw">this</span> folder</span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> cd $FINAL_PROJECT_HOME<span class="op">/</span>project<span class="op">/</span>fraud<span class="op">-</span>detection<span class="op">-</span>portal</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> npm run build</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> docker compose up <span class="op">-</span>d mailhog db payment<span class="op">-</span>solution </span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> npm run dev </span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>$<span class="op">&gt;</span> # # Dockerfile is also available in <span class="kw">this</span> folder</span></code></pre></div>
 <h3
 id="r7-create-web-services-soap-restful-to-use-the-data-service-components.">R7
 Create web services (SOAP, RESTful) to use the data service
@@ -2124,145 +2237,145 @@ components.</p>
 <p>Using the API during the mounting process is done through the onMount
 lifecycle function within the Svelte component, where data is received
 after the component has loaded.</p>
-<div class="sourceCode" id="cb23"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a># src<span class="op">/</span>routes<span class="op">/+</span>page<span class="op">.</span><span class="fu">svelte</span> <span class="op">-</span> The main page of SvelteKit application</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>script<span class="op">&gt;</span></span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">import</span> <span class="im">{ goto } from &#39;$app/navigation&#39;</span><span class="op">;</span></span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">import</span> <span class="im">SearchBox from &#39;$lib/components/SearchBox</span><span class="op">.</span><span class="im">svelte&#39;</span><span class="op">;</span></span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">import</span> <span class="im">TransactionTable from &#39;$lib/components/TransactionTable</span><span class="op">.</span><span class="im">svelte&#39;</span><span class="op">;</span></span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">import</span> <span class="im">{ searchTransactions } from &#39;$lib/api&#39;</span><span class="op">;</span></span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">import</span> <span class="im">{ searchStore } from &#39;$lib/stores/searchStore&#39;</span><span class="op">;</span></span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>    let transactions <span class="op">=</span> <span class="op">[];</span></span>
-<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>    let error <span class="op">=</span> <span class="kw">null</span><span class="op">;</span></span>
-<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>    let loading <span class="op">=</span> <span class="kw">false</span><span class="op">;</span></span>
-<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Subscribe to the store</span></span>
-<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>    $<span class="op">:</span> transactions <span class="op">=</span> $searchStore<span class="op">.</span><span class="fu">transactions</span><span class="op">;</span></span>
-<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>    async function <span class="fu">handleSearch</span><span class="op">(</span>event<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span> <span class="op">{</span></span>
-<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>            loading <span class="op">=</span> <span class="kw">true</span><span class="op">;</span> </span>
-<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>            error <span class="op">=</span> <span class="kw">null</span><span class="op">;</span></span>
-<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>            transactions <span class="op">=</span> await <span class="fu">searchTransactions</span><span class="op">(</span>event<span class="op">.</span><span class="fu">detail</span><span class="op">);</span></span>
-<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>            searchStore<span class="op">.</span><span class="fu">setSearch</span><span class="op">(</span>event<span class="op">.</span><span class="fu">detail</span><span class="op">,</span> transactions<span class="op">);</span></span>
-<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span> <span class="cf">catch</span> <span class="op">(</span>e<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>            error <span class="op">=</span> e<span class="op">.</span><span class="fu">message</span><span class="op">;</span></span>
-<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a>            transactions <span class="op">=</span> <span class="op">[];</span></span>
-<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span> <span class="cf">finally</span> <span class="op">{</span></span>
-<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a>            loading <span class="op">=</span> <span class="kw">false</span><span class="op">;</span> <span class="co">// Set loading to false when search completes or fails</span></span>
-<span id="cb23-28"><a href="#cb23-28" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
-<span id="cb23-29"><a href="#cb23-29" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb23-30"><a href="#cb23-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-31"><a href="#cb23-31" aria-hidden="true" tabindex="-1"></a>    function <span class="fu">handleSelect</span><span class="op">(</span>event<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb23-32"><a href="#cb23-32" aria-hidden="true" tabindex="-1"></a>        <span class="cf">goto</span><span class="op">(</span>`<span class="op">/</span>transaction<span class="op">/</span>$<span class="op">{</span>event<span class="op">.</span><span class="fu">detail</span><span class="op">}</span>`<span class="op">);</span></span>
-<span id="cb23-33"><a href="#cb23-33" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb23-34"><a href="#cb23-34" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;/</span>script<span class="op">&gt;</span></span>
-<span id="cb23-35"><a href="#cb23-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-36"><a href="#cb23-36" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>h1<span class="op">&gt;</span>Fraud Detection Portal<span class="op">&lt;/</span>h1<span class="op">&gt;</span></span>
-<span id="cb23-37"><a href="#cb23-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-38"><a href="#cb23-38" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>SearchBox initialValue<span class="op">={</span>$searchStore<span class="op">.</span><span class="fu">cardNumber</span><span class="op">}</span> on<span class="op">:</span>search<span class="op">={</span>handleSearch<span class="op">}</span> <span class="op">/&gt;</span></span>
-<span id="cb23-39"><a href="#cb23-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-40"><a href="#cb23-40" aria-hidden="true" tabindex="-1"></a><span class="op">{</span>#if loading<span class="op">}</span></span>
-<span id="cb23-41"><a href="#cb23-41" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;flex items-center justify-center p-8&quot;</span><span class="op">&gt;</span></span>
-<span id="cb23-42"><a href="#cb23-42" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500&quot;</span><span class="op">&gt;&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb23-43"><a href="#cb23-43" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;</span>p <span class="kw">class</span><span class="op">=</span><span class="st">&quot;ml-3 text-gray-600&quot;</span><span class="op">&gt;</span>Searching transactions<span class="kw">...</span><span class="op">&lt;/</span>p<span class="op">&gt;</span></span>
-<span id="cb23-44"><a href="#cb23-44" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb23-45"><a href="#cb23-45" aria-hidden="true" tabindex="-1"></a><span class="op">{:</span><span class="cf">else</span> <span class="cf">if</span> error<span class="op">}</span></span>
-<span id="cb23-46"><a href="#cb23-46" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;bg-red-50 border border-red-200 rounded-lg p-4 mt-4 text-red-700&quot;</span><span class="op">&gt;</span></span>
-<span id="cb23-47"><a href="#cb23-47" aria-hidden="true" tabindex="-1"></a>        <span class="op">{</span>error<span class="op">}</span></span>
-<span id="cb23-48"><a href="#cb23-48" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb23-49"><a href="#cb23-49" aria-hidden="true" tabindex="-1"></a><span class="op">{:</span><span class="cf">else</span> <span class="cf">if</span> transactions<span class="op">.</span><span class="fu">length</span> <span class="op">&gt;</span> <span class="dv">0</span><span class="op">}</span></span>
-<span id="cb23-50"><a href="#cb23-50" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;</span>TransactionTable </span>
-<span id="cb23-51"><a href="#cb23-51" aria-hidden="true" tabindex="-1"></a>        <span class="op">{</span>transactions<span class="op">}</span> </span>
-<span id="cb23-52"><a href="#cb23-52" aria-hidden="true" tabindex="-1"></a>        on<span class="op">:</span>select<span class="op">={</span>handleSelect<span class="op">}</span></span>
-<span id="cb23-53"><a href="#cb23-53" aria-hidden="true" tabindex="-1"></a>    <span class="op">/&gt;</span></span>
-<span id="cb23-54"><a href="#cb23-54" aria-hidden="true" tabindex="-1"></a><span class="op">{/</span><span class="cf">if</span><span class="op">}</span></span></code></pre></div>
 <div class="sourceCode" id="cb24"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a># src<span class="op">/</span>routes<span class="op">/</span>transaction<span class="op">/[</span>id<span class="op">]/+</span>page<span class="op">.</span><span class="fu">svelte</span> <span class="op">-</span> Payment <span class="bu">Request</span> Details <span class="bu">Component</span></span>
+class="sourceCode java"><code class="sourceCode java"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a># src<span class="op">/</span>routes<span class="op">/+</span>page<span class="op">.</span><span class="fu">svelte</span> <span class="op">-</span> The main page of SvelteKit application</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>script lang<span class="op">=</span><span class="st">&quot;ts&quot;</span><span class="op">&gt;</span></span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">import</span> <span class="im">{ onMount } from &#39;svelte&#39;</span><span class="op">;</span></span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">import</span> <span class="im">type { PaymentRequest } from &#39;$lib/types&#39;</span><span class="op">;</span></span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">import</span> <span class="im">{ getTransactionDetail } from &#39;$lib/api&#39;</span><span class="op">;</span></span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>    export let transactionId<span class="op">:</span> string<span class="op">;</span></span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>    let transaction<span class="op">:</span> PaymentRequest <span class="op">|</span> <span class="kw">null</span> <span class="op">=</span> <span class="kw">null</span><span class="op">;</span></span>
-<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>    let error<span class="op">:</span> string <span class="op">|</span> <span class="kw">null</span> <span class="op">=</span> <span class="kw">null</span><span class="op">;</span></span>
-<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>    let loading <span class="op">=</span> <span class="kw">true</span><span class="op">;</span></span>
-<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">onMount</span><span class="op">(</span><span class="fu">async</span> <span class="op">()</span> <span class="op">=&gt;</span> <span class="op">{</span></span>
-<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span> <span class="op">{</span></span>
-<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>            <span class="co">// const transactionData = await fetch(`http://localhost:8080/payment-request?id=${transactionId}`).then(r =&gt; r.json());  </span></span>
-<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>            <span class="dt">const</span> transactionData <span class="op">=</span> await <span class="fu">getTransactionDetail</span><span class="op">(</span>transactionId<span class="op">);</span></span>
-<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>            transaction <span class="op">=</span> transactionData<span class="op">;</span></span>
-<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>            loading <span class="op">=</span> <span class="kw">false</span><span class="op">;</span></span>
-<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span> <span class="cf">catch</span> <span class="op">(</span>e<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a>            error <span class="op">=</span> e <span class="kw">instanceof</span> <span class="bu">Error</span> <span class="op">?</span> e<span class="op">.</span><span class="fu">message</span> <span class="op">:</span> <span class="er">&#39;</span>An error occurred<span class="er">&#39;</span><span class="op">;</span></span>
-<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a>            loading <span class="op">=</span> <span class="kw">false</span><span class="op">;</span></span>
-<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
-<span id="cb24-25"><a href="#cb24-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">});</span></span>
-<span id="cb24-26"><a href="#cb24-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-27"><a href="#cb24-27" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;/</span>script<span class="op">&gt;</span></span>
-<span id="cb24-28"><a href="#cb24-28" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;max-w-4xl mx-auto p-4 space-y-6&quot;</span><span class="op">&gt;</span></span>
-<span id="cb24-29"><a href="#cb24-29" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;!--</span> Loading <span class="bu">State</span> <span class="op">--&gt;</span></span>
-<span id="cb24-30"><a href="#cb24-30" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span>#if loading<span class="op">}</span></span>
-<span id="cb24-31"><a href="#cb24-31" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;flex justify-center items-center h-32&quot;</span><span class="op">&gt;</span></span>
-<span id="cb24-32"><a href="#cb24-32" aria-hidden="true" tabindex="-1"></a>            <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500&quot;</span><span class="op">&gt;&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb24-33"><a href="#cb24-33" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb24-34"><a href="#cb24-34" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;!--</span> <span class="bu">Error</span> <span class="bu">State</span> <span class="op">--&gt;</span></span>
-<span id="cb24-35"><a href="#cb24-35" aria-hidden="true" tabindex="-1"></a>    <span class="op">{:</span><span class="cf">else</span> <span class="cf">if</span> error<span class="op">}</span></span>
-<span id="cb24-36"><a href="#cb24-36" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;bg-red-50 border border-red-200 rounded-lg p-4 text-red-700&quot;</span><span class="op">&gt;</span></span>
-<span id="cb24-37"><a href="#cb24-37" aria-hidden="true" tabindex="-1"></a>            <span class="op">&lt;</span>p<span class="op">&gt;{</span>error<span class="op">}&lt;/</span>p<span class="op">&gt;</span></span>
-<span id="cb24-38"><a href="#cb24-38" aria-hidden="true" tabindex="-1"></a>            <span class="op">&lt;</span>button </span>
-<span id="cb24-39"><a href="#cb24-39" aria-hidden="true" tabindex="-1"></a>                <span class="kw">class</span><span class="op">=</span><span class="st">&quot;mt-2 text-sm text-red-600 hover:text-red-800 underline&quot;</span></span>
-<span id="cb24-40"><a href="#cb24-40" aria-hidden="true" tabindex="-1"></a>                on<span class="op">:</span>click<span class="op">={()</span> <span class="op">=&gt;</span> window<span class="op">.</span><span class="fu">location</span><span class="op">.</span><span class="fu">reload</span><span class="op">()}</span></span>
-<span id="cb24-41"><a href="#cb24-41" aria-hidden="true" tabindex="-1"></a>            <span class="op">&gt;</span></span>
-<span id="cb24-42"><a href="#cb24-42" aria-hidden="true" tabindex="-1"></a>                Retry</span>
-<span id="cb24-43"><a href="#cb24-43" aria-hidden="true" tabindex="-1"></a>            <span class="op">&lt;/</span>button<span class="op">&gt;</span></span>
-<span id="cb24-44"><a href="#cb24-44" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb24-45"><a href="#cb24-45" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;!--</span> Content <span class="op">--&gt;</span></span>
-<span id="cb24-46"><a href="#cb24-46" aria-hidden="true" tabindex="-1"></a>    <span class="op">{:</span><span class="cf">else</span><span class="op">}</span></span>
-<span id="cb24-47"><a href="#cb24-47" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;!--</span> Payment <span class="bu">Request</span> Details  <span class="op">--&gt;</span></span>
-<span id="cb24-48"><a href="#cb24-48" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;bg-white rounded-lg p-6 mb-8 shadow-md&quot;</span><span class="op">&gt;</span></span>
-<span id="cb24-49"><a href="#cb24-49" aria-hidden="true" tabindex="-1"></a>            <span class="op">&lt;</span>h3 <span class="kw">class</span><span class="op">=</span><span class="st">&quot;text-gray-700 mb-4 border-b-2 border-gray-200 pb-2&quot;</span><span class="op">&gt;</span>Payment <span class="bu">Request</span> Details<span class="op">&lt;/</span>h3<span class="op">&gt;</span></span>
-<span id="cb24-50"><a href="#cb24-50" aria-hidden="true" tabindex="-1"></a>            <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;grid grid-cols-2 gap-y-3 gap-x-8 items-center&quot;</span><span class="op">&gt;</span></span>
-<span id="cb24-51"><a href="#cb24-51" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;font-medium text-gray-700&quot;</span><span class="op">&gt;</span>Transaction ID<span class="op">:&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb24-52"><a href="#cb24-52" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;text-gray-900&quot;</span><span class="op">&gt;{</span>transaction<span class="op">.</span><span class="fu">id</span><span class="op">}&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb24-53"><a href="#cb24-53" aria-hidden="true" tabindex="-1"></a>                </span>
-<span id="cb24-54"><a href="#cb24-54" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;font-medium text-gray-700&quot;</span><span class="op">&gt;</span>Amount<span class="op">:&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb24-55"><a href="#cb24-55" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;text-gray-900&quot;</span><span class="op">&gt;</span>$<span class="op">{</span>transaction<span class="op">.</span><span class="fu">transactionAmount</span><span class="op">}&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb24-56"><a href="#cb24-56" aria-hidden="true" tabindex="-1"></a>                </span>
-<span id="cb24-57"><a href="#cb24-57" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;font-medium text-gray-700&quot;</span><span class="op">&gt;</span><span class="bu">Date</span><span class="op">:&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb24-58"><a href="#cb24-58" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;text-gray-900&quot;</span><span class="op">&gt;{</span><span class="kw">new</span> <span class="bu">Date</span><span class="op">(</span>transaction<span class="op">.</span><span class="fu">transactionDatetime</span><span class="op">).</span><span class="fu">toLocaleString</span><span class="op">()}&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb24-59"><a href="#cb24-59" aria-hidden="true" tabindex="-1"></a>                </span>
-<span id="cb24-60"><a href="#cb24-60" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;font-medium text-gray-700&quot;</span><span class="op">&gt;</span><span class="bu">Type</span><span class="op">:&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb24-61"><a href="#cb24-61" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;text-gray-900&quot;</span><span class="op">&gt;{</span>transaction<span class="op">.</span><span class="fu">transactionType</span><span class="op">}&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb24-62"><a href="#cb24-62" aria-hidden="true" tabindex="-1"></a>                </span>
-<span id="cb24-63"><a href="#cb24-63" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;font-medium text-gray-700&quot;</span><span class="op">&gt;</span>Merchant<span class="op">:&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb24-64"><a href="#cb24-64" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;text-gray-900&quot;</span><span class="op">&gt;</span></span>
-<span id="cb24-65"><a href="#cb24-65" aria-hidden="true" tabindex="-1"></a>                    <span class="op">{</span>transaction<span class="op">.</span><span class="fu">merchantId</span><span class="op">}&lt;</span>br<span class="op">&gt;</span></span>
-<span id="cb24-66"><a href="#cb24-66" aria-hidden="true" tabindex="-1"></a>                    <span class="op">&lt;</span>span <span class="kw">class</span><span class="op">=</span><span class="st">&quot;text-sm text-gray-500&quot;</span><span class="op">&gt;{</span>transaction<span class="op">.</span><span class="fu">merchantMccCode</span><span class="op">}&lt;/</span>span<span class="op">&gt;</span></span>
-<span id="cb24-67"><a href="#cb24-67" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb24-68"><a href="#cb24-68" aria-hidden="true" tabindex="-1"></a>                </span>
-<span id="cb24-69"><a href="#cb24-69" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;font-medium text-gray-700&quot;</span><span class="op">&gt;</span><span class="bu">Location</span><span class="op">:&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb24-70"><a href="#cb24-70" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;text-gray-900&quot;</span><span class="op">&gt;</span></span>
-<span id="cb24-71"><a href="#cb24-71" aria-hidden="true" tabindex="-1"></a>                    <span class="op">{</span>transaction<span class="op">.</span><span class="fu">merchantCity</span><span class="op">},</span> <span class="op">{</span>transaction<span class="op">.</span><span class="fu">merchantState</span><span class="op">}</span> <span class="op">{</span>transaction<span class="op">.</span><span class="fu">merchantZip</span><span class="op">}</span></span>
-<span id="cb24-72"><a href="#cb24-72" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb24-73"><a href="#cb24-73" aria-hidden="true" tabindex="-1"></a>                </span>
-<span id="cb24-74"><a href="#cb24-74" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;font-medium text-gray-700&quot;</span><span class="op">&gt;</span>Fraud Detection<span class="op">:&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb24-75"><a href="#cb24-75" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;text-gray-900&quot;</span><span class="op">&gt;</span></span>
-<span id="cb24-76"><a href="#cb24-76" aria-hidden="true" tabindex="-1"></a>                    <span class="op">&lt;</span>span <span class="kw">class</span><span class="op">={</span>transaction<span class="op">.</span><span class="fu">fraudDetected</span> <span class="op">?</span> <span class="er">&#39;</span>text<span class="op">-</span>red<span class="op">-</span><span class="dv">600</span> font<span class="op">-</span>bold<span class="er">&#39;</span> <span class="op">:</span> <span class="er">&#39;</span>text<span class="op">-</span>green<span class="op">-</span><span class="dv">600</span><span class="er">&#39;</span><span class="op">}&gt;</span></span>
-<span id="cb24-77"><a href="#cb24-77" aria-hidden="true" tabindex="-1"></a>                        <span class="op">{</span>transaction<span class="op">.</span><span class="fu">fraudDetected</span> <span class="op">?</span> <span class="er">&#39;</span>Yes<span class="er">&#39;</span> <span class="op">:</span> <span class="er">&#39;</span>No<span class="er">&#39;</span><span class="op">}</span></span>
-<span id="cb24-78"><a href="#cb24-78" aria-hidden="true" tabindex="-1"></a>                    <span class="op">&lt;/</span>span<span class="op">&gt;</span></span>
-<span id="cb24-79"><a href="#cb24-79" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb24-80"><a href="#cb24-80" aria-hidden="true" tabindex="-1"></a>            <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb24-81"><a href="#cb24-81" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
-<span id="cb24-82"><a href="#cb24-82" aria-hidden="true" tabindex="-1"></a>    <span class="op">{/</span><span class="cf">if</span><span class="op">}</span></span>
-<span id="cb24-83"><a href="#cb24-83" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;/</span>div<span class="op">&gt;</span></span></code></pre></div>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>script<span class="op">&gt;</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">import</span> <span class="im">{ goto } from &#39;$app/navigation&#39;</span><span class="op">;</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">import</span> <span class="im">SearchBox from &#39;$lib/components/SearchBox</span><span class="op">.</span><span class="im">svelte&#39;</span><span class="op">;</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">import</span> <span class="im">TransactionTable from &#39;$lib/components/TransactionTable</span><span class="op">.</span><span class="im">svelte&#39;</span><span class="op">;</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">import</span> <span class="im">{ searchTransactions } from &#39;$lib/api&#39;</span><span class="op">;</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">import</span> <span class="im">{ searchStore } from &#39;$lib/stores/searchStore&#39;</span><span class="op">;</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>    let transactions <span class="op">=</span> <span class="op">[];</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>    let error <span class="op">=</span> <span class="kw">null</span><span class="op">;</span></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>    let loading <span class="op">=</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Subscribe to the store</span></span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>    $<span class="op">:</span> transactions <span class="op">=</span> $searchStore<span class="op">.</span><span class="fu">transactions</span><span class="op">;</span></span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>    async function <span class="fu">handleSearch</span><span class="op">(</span>event<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>            loading <span class="op">=</span> <span class="kw">true</span><span class="op">;</span> </span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>            error <span class="op">=</span> <span class="kw">null</span><span class="op">;</span></span>
+<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a>            transactions <span class="op">=</span> await <span class="fu">searchTransactions</span><span class="op">(</span>event<span class="op">.</span><span class="fu">detail</span><span class="op">);</span></span>
+<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a>            searchStore<span class="op">.</span><span class="fu">setSearch</span><span class="op">(</span>event<span class="op">.</span><span class="fu">detail</span><span class="op">,</span> transactions<span class="op">);</span></span>
+<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span> <span class="cf">catch</span> <span class="op">(</span>e<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a>            error <span class="op">=</span> e<span class="op">.</span><span class="fu">message</span><span class="op">;</span></span>
+<span id="cb24-25"><a href="#cb24-25" aria-hidden="true" tabindex="-1"></a>            transactions <span class="op">=</span> <span class="op">[];</span></span>
+<span id="cb24-26"><a href="#cb24-26" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span> <span class="cf">finally</span> <span class="op">{</span></span>
+<span id="cb24-27"><a href="#cb24-27" aria-hidden="true" tabindex="-1"></a>            loading <span class="op">=</span> <span class="kw">false</span><span class="op">;</span> <span class="co">// Set loading to false when search completes or fails</span></span>
+<span id="cb24-28"><a href="#cb24-28" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb24-29"><a href="#cb24-29" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb24-30"><a href="#cb24-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-31"><a href="#cb24-31" aria-hidden="true" tabindex="-1"></a>    function <span class="fu">handleSelect</span><span class="op">(</span>event<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb24-32"><a href="#cb24-32" aria-hidden="true" tabindex="-1"></a>        <span class="cf">goto</span><span class="op">(</span>`<span class="op">/</span>transaction<span class="op">/</span>$<span class="op">{</span>event<span class="op">.</span><span class="fu">detail</span><span class="op">}</span>`<span class="op">);</span></span>
+<span id="cb24-33"><a href="#cb24-33" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb24-34"><a href="#cb24-34" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;/</span>script<span class="op">&gt;</span></span>
+<span id="cb24-35"><a href="#cb24-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-36"><a href="#cb24-36" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>h1<span class="op">&gt;</span>Fraud Detection Portal<span class="op">&lt;/</span>h1<span class="op">&gt;</span></span>
+<span id="cb24-37"><a href="#cb24-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-38"><a href="#cb24-38" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>SearchBox initialValue<span class="op">={</span>$searchStore<span class="op">.</span><span class="fu">cardNumber</span><span class="op">}</span> on<span class="op">:</span>search<span class="op">={</span>handleSearch<span class="op">}</span> <span class="op">/&gt;</span></span>
+<span id="cb24-39"><a href="#cb24-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-40"><a href="#cb24-40" aria-hidden="true" tabindex="-1"></a><span class="op">{</span>#if loading<span class="op">}</span></span>
+<span id="cb24-41"><a href="#cb24-41" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;flex items-center justify-center p-8&quot;</span><span class="op">&gt;</span></span>
+<span id="cb24-42"><a href="#cb24-42" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500&quot;</span><span class="op">&gt;&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb24-43"><a href="#cb24-43" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;</span>p <span class="kw">class</span><span class="op">=</span><span class="st">&quot;ml-3 text-gray-600&quot;</span><span class="op">&gt;</span>Searching transactions<span class="kw">...</span><span class="op">&lt;/</span>p<span class="op">&gt;</span></span>
+<span id="cb24-44"><a href="#cb24-44" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb24-45"><a href="#cb24-45" aria-hidden="true" tabindex="-1"></a><span class="op">{:</span><span class="cf">else</span> <span class="cf">if</span> error<span class="op">}</span></span>
+<span id="cb24-46"><a href="#cb24-46" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;bg-red-50 border border-red-200 rounded-lg p-4 mt-4 text-red-700&quot;</span><span class="op">&gt;</span></span>
+<span id="cb24-47"><a href="#cb24-47" aria-hidden="true" tabindex="-1"></a>        <span class="op">{</span>error<span class="op">}</span></span>
+<span id="cb24-48"><a href="#cb24-48" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb24-49"><a href="#cb24-49" aria-hidden="true" tabindex="-1"></a><span class="op">{:</span><span class="cf">else</span> <span class="cf">if</span> transactions<span class="op">.</span><span class="fu">length</span> <span class="op">&gt;</span> <span class="dv">0</span><span class="op">}</span></span>
+<span id="cb24-50"><a href="#cb24-50" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;</span>TransactionTable </span>
+<span id="cb24-51"><a href="#cb24-51" aria-hidden="true" tabindex="-1"></a>        <span class="op">{</span>transactions<span class="op">}</span> </span>
+<span id="cb24-52"><a href="#cb24-52" aria-hidden="true" tabindex="-1"></a>        on<span class="op">:</span>select<span class="op">={</span>handleSelect<span class="op">}</span></span>
+<span id="cb24-53"><a href="#cb24-53" aria-hidden="true" tabindex="-1"></a>    <span class="op">/&gt;</span></span>
+<span id="cb24-54"><a href="#cb24-54" aria-hidden="true" tabindex="-1"></a><span class="op">{/</span><span class="cf">if</span><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a># src<span class="op">/</span>routes<span class="op">/</span>transaction<span class="op">/[</span>id<span class="op">]/+</span>page<span class="op">.</span><span class="fu">svelte</span> <span class="op">-</span> Payment <span class="bu">Request</span> Details <span class="bu">Component</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>script lang<span class="op">=</span><span class="st">&quot;ts&quot;</span><span class="op">&gt;</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">import</span> <span class="im">{ onMount } from &#39;svelte&#39;</span><span class="op">;</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">import</span> <span class="im">type { PaymentRequest } from &#39;$lib/types&#39;</span><span class="op">;</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">import</span> <span class="im">{ getTransactionDetail } from &#39;$lib/api&#39;</span><span class="op">;</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    export let transactionId<span class="op">:</span> string<span class="op">;</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>    let transaction<span class="op">:</span> PaymentRequest <span class="op">|</span> <span class="kw">null</span> <span class="op">=</span> <span class="kw">null</span><span class="op">;</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>    let error<span class="op">:</span> string <span class="op">|</span> <span class="kw">null</span> <span class="op">=</span> <span class="kw">null</span><span class="op">;</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>    let loading <span class="op">=</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">onMount</span><span class="op">(</span><span class="fu">async</span> <span class="op">()</span> <span class="op">=&gt;</span> <span class="op">{</span></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>            <span class="co">// const transactionData = await fetch(`http://localhost:8080/payment-request?id=${transactionId}`).then(r =&gt; r.json());  </span></span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>            <span class="dt">const</span> transactionData <span class="op">=</span> await <span class="fu">getTransactionDetail</span><span class="op">(</span>transactionId<span class="op">);</span></span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>            transaction <span class="op">=</span> transactionData<span class="op">;</span></span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>            loading <span class="op">=</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span> <span class="cf">catch</span> <span class="op">(</span>e<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>            error <span class="op">=</span> e <span class="kw">instanceof</span> <span class="bu">Error</span> <span class="op">?</span> e<span class="op">.</span><span class="fu">message</span> <span class="op">:</span> <span class="er">&#39;</span>An error occurred<span class="er">&#39;</span><span class="op">;</span></span>
+<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>            loading <span class="op">=</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">});</span></span>
+<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;/</span>script<span class="op">&gt;</span></span>
+<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;max-w-4xl mx-auto p-4 space-y-6&quot;</span><span class="op">&gt;</span></span>
+<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;!--</span> Loading <span class="bu">State</span> <span class="op">--&gt;</span></span>
+<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span>#if loading<span class="op">}</span></span>
+<span id="cb25-31"><a href="#cb25-31" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;flex justify-center items-center h-32&quot;</span><span class="op">&gt;</span></span>
+<span id="cb25-32"><a href="#cb25-32" aria-hidden="true" tabindex="-1"></a>            <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500&quot;</span><span class="op">&gt;&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb25-33"><a href="#cb25-33" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb25-34"><a href="#cb25-34" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;!--</span> <span class="bu">Error</span> <span class="bu">State</span> <span class="op">--&gt;</span></span>
+<span id="cb25-35"><a href="#cb25-35" aria-hidden="true" tabindex="-1"></a>    <span class="op">{:</span><span class="cf">else</span> <span class="cf">if</span> error<span class="op">}</span></span>
+<span id="cb25-36"><a href="#cb25-36" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;bg-red-50 border border-red-200 rounded-lg p-4 text-red-700&quot;</span><span class="op">&gt;</span></span>
+<span id="cb25-37"><a href="#cb25-37" aria-hidden="true" tabindex="-1"></a>            <span class="op">&lt;</span>p<span class="op">&gt;{</span>error<span class="op">}&lt;/</span>p<span class="op">&gt;</span></span>
+<span id="cb25-38"><a href="#cb25-38" aria-hidden="true" tabindex="-1"></a>            <span class="op">&lt;</span>button </span>
+<span id="cb25-39"><a href="#cb25-39" aria-hidden="true" tabindex="-1"></a>                <span class="kw">class</span><span class="op">=</span><span class="st">&quot;mt-2 text-sm text-red-600 hover:text-red-800 underline&quot;</span></span>
+<span id="cb25-40"><a href="#cb25-40" aria-hidden="true" tabindex="-1"></a>                on<span class="op">:</span>click<span class="op">={()</span> <span class="op">=&gt;</span> window<span class="op">.</span><span class="fu">location</span><span class="op">.</span><span class="fu">reload</span><span class="op">()}</span></span>
+<span id="cb25-41"><a href="#cb25-41" aria-hidden="true" tabindex="-1"></a>            <span class="op">&gt;</span></span>
+<span id="cb25-42"><a href="#cb25-42" aria-hidden="true" tabindex="-1"></a>                Retry</span>
+<span id="cb25-43"><a href="#cb25-43" aria-hidden="true" tabindex="-1"></a>            <span class="op">&lt;/</span>button<span class="op">&gt;</span></span>
+<span id="cb25-44"><a href="#cb25-44" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb25-45"><a href="#cb25-45" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;!--</span> Content <span class="op">--&gt;</span></span>
+<span id="cb25-46"><a href="#cb25-46" aria-hidden="true" tabindex="-1"></a>    <span class="op">{:</span><span class="cf">else</span><span class="op">}</span></span>
+<span id="cb25-47"><a href="#cb25-47" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;!--</span> Payment <span class="bu">Request</span> Details  <span class="op">--&gt;</span></span>
+<span id="cb25-48"><a href="#cb25-48" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;bg-white rounded-lg p-6 mb-8 shadow-md&quot;</span><span class="op">&gt;</span></span>
+<span id="cb25-49"><a href="#cb25-49" aria-hidden="true" tabindex="-1"></a>            <span class="op">&lt;</span>h3 <span class="kw">class</span><span class="op">=</span><span class="st">&quot;text-gray-700 mb-4 border-b-2 border-gray-200 pb-2&quot;</span><span class="op">&gt;</span>Payment <span class="bu">Request</span> Details<span class="op">&lt;/</span>h3<span class="op">&gt;</span></span>
+<span id="cb25-50"><a href="#cb25-50" aria-hidden="true" tabindex="-1"></a>            <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;grid grid-cols-2 gap-y-3 gap-x-8 items-center&quot;</span><span class="op">&gt;</span></span>
+<span id="cb25-51"><a href="#cb25-51" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;font-medium text-gray-700&quot;</span><span class="op">&gt;</span>Transaction ID<span class="op">:&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb25-52"><a href="#cb25-52" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;text-gray-900&quot;</span><span class="op">&gt;{</span>transaction<span class="op">.</span><span class="fu">id</span><span class="op">}&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb25-53"><a href="#cb25-53" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb25-54"><a href="#cb25-54" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;font-medium text-gray-700&quot;</span><span class="op">&gt;</span>Amount<span class="op">:&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb25-55"><a href="#cb25-55" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;text-gray-900&quot;</span><span class="op">&gt;</span>$<span class="op">{</span>transaction<span class="op">.</span><span class="fu">transactionAmount</span><span class="op">}&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb25-56"><a href="#cb25-56" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb25-57"><a href="#cb25-57" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;font-medium text-gray-700&quot;</span><span class="op">&gt;</span><span class="bu">Date</span><span class="op">:&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb25-58"><a href="#cb25-58" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;text-gray-900&quot;</span><span class="op">&gt;{</span><span class="kw">new</span> <span class="bu">Date</span><span class="op">(</span>transaction<span class="op">.</span><span class="fu">transactionDatetime</span><span class="op">).</span><span class="fu">toLocaleString</span><span class="op">()}&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb25-59"><a href="#cb25-59" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb25-60"><a href="#cb25-60" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;font-medium text-gray-700&quot;</span><span class="op">&gt;</span><span class="bu">Type</span><span class="op">:&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb25-61"><a href="#cb25-61" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;text-gray-900&quot;</span><span class="op">&gt;{</span>transaction<span class="op">.</span><span class="fu">transactionType</span><span class="op">}&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb25-62"><a href="#cb25-62" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb25-63"><a href="#cb25-63" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;font-medium text-gray-700&quot;</span><span class="op">&gt;</span>Merchant<span class="op">:&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb25-64"><a href="#cb25-64" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;text-gray-900&quot;</span><span class="op">&gt;</span></span>
+<span id="cb25-65"><a href="#cb25-65" aria-hidden="true" tabindex="-1"></a>                    <span class="op">{</span>transaction<span class="op">.</span><span class="fu">merchantId</span><span class="op">}&lt;</span>br<span class="op">&gt;</span></span>
+<span id="cb25-66"><a href="#cb25-66" aria-hidden="true" tabindex="-1"></a>                    <span class="op">&lt;</span>span <span class="kw">class</span><span class="op">=</span><span class="st">&quot;text-sm text-gray-500&quot;</span><span class="op">&gt;{</span>transaction<span class="op">.</span><span class="fu">merchantMccCode</span><span class="op">}&lt;/</span>span<span class="op">&gt;</span></span>
+<span id="cb25-67"><a href="#cb25-67" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb25-68"><a href="#cb25-68" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb25-69"><a href="#cb25-69" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;font-medium text-gray-700&quot;</span><span class="op">&gt;</span><span class="bu">Location</span><span class="op">:&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb25-70"><a href="#cb25-70" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;text-gray-900&quot;</span><span class="op">&gt;</span></span>
+<span id="cb25-71"><a href="#cb25-71" aria-hidden="true" tabindex="-1"></a>                    <span class="op">{</span>transaction<span class="op">.</span><span class="fu">merchantCity</span><span class="op">},</span> <span class="op">{</span>transaction<span class="op">.</span><span class="fu">merchantState</span><span class="op">}</span> <span class="op">{</span>transaction<span class="op">.</span><span class="fu">merchantZip</span><span class="op">}</span></span>
+<span id="cb25-72"><a href="#cb25-72" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb25-73"><a href="#cb25-73" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb25-74"><a href="#cb25-74" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;font-medium text-gray-700&quot;</span><span class="op">&gt;</span>Fraud Detection<span class="op">:&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb25-75"><a href="#cb25-75" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;</span>div <span class="kw">class</span><span class="op">=</span><span class="st">&quot;text-gray-900&quot;</span><span class="op">&gt;</span></span>
+<span id="cb25-76"><a href="#cb25-76" aria-hidden="true" tabindex="-1"></a>                    <span class="op">&lt;</span>span <span class="kw">class</span><span class="op">={</span>transaction<span class="op">.</span><span class="fu">fraudDetected</span> <span class="op">?</span> <span class="er">&#39;</span>text<span class="op">-</span>red<span class="op">-</span><span class="dv">600</span> font<span class="op">-</span>bold<span class="er">&#39;</span> <span class="op">:</span> <span class="er">&#39;</span>text<span class="op">-</span>green<span class="op">-</span><span class="dv">600</span><span class="er">&#39;</span><span class="op">}&gt;</span></span>
+<span id="cb25-77"><a href="#cb25-77" aria-hidden="true" tabindex="-1"></a>                        <span class="op">{</span>transaction<span class="op">.</span><span class="fu">fraudDetected</span> <span class="op">?</span> <span class="er">&#39;</span>Yes<span class="er">&#39;</span> <span class="op">:</span> <span class="er">&#39;</span>No<span class="er">&#39;</span><span class="op">}</span></span>
+<span id="cb25-78"><a href="#cb25-78" aria-hidden="true" tabindex="-1"></a>                    <span class="op">&lt;/</span>span<span class="op">&gt;</span></span>
+<span id="cb25-79"><a href="#cb25-79" aria-hidden="true" tabindex="-1"></a>                <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb25-80"><a href="#cb25-80" aria-hidden="true" tabindex="-1"></a>            <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb25-81"><a href="#cb25-81" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb25-82"><a href="#cb25-82" aria-hidden="true" tabindex="-1"></a>    <span class="op">{/</span><span class="cf">if</span><span class="op">}</span></span>
+<span id="cb25-83"><a href="#cb25-83" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;/</span>div<span class="op">&gt;</span></span></code></pre></div>
 <p>Detail API call call be found in R5.</p>
 <h3
 id="r9-test-your-services-log-your-services-and-document-your-term-project.">R9
@@ -2309,52 +2422,91 @@ Collection or use Bruno CLI to run invidual script.</p>
 Figure 28 - Bruno Desktop
 </figcaption>
 </figure>
-<div class="sourceCode" id="cb26"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a># Bruno script code snippet</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>meta <span class="op">{</span></span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  name<span class="op">:</span> Create Success Payment <span class="bu">Request</span></span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  type<span class="op">:</span> http</span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  seq<span class="op">:</span> <span class="dv">2</span></span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>post <span class="op">{</span></span>
-<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>  url<span class="op">:</span> http<span class="op">:</span><span class="co">//localhost:8080/payment-request</span></span>
-<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>  body<span class="op">:</span> json</span>
-<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>  auth<span class="op">:</span> none</span>
-<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>headers <span class="op">{</span></span>
-<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>  Content<span class="op">-</span><span class="bu">Type</span><span class="op">:</span> application<span class="op">/</span>json</span>
-<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>  Accept<span class="op">:</span> application<span class="op">/</span>json</span>
-<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>  Authorization<span class="op">:</span> Bearer Token <span class="dv">1234567890</span></span>
-<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>  X<span class="op">-</span>Api<span class="op">-</span><span class="bu">Key</span><span class="op">:</span> <span class="dv">1234567890</span></span>
-<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>  X<span class="op">-</span><span class="bu">Notification</span><span class="op">:</span> <span class="kw">true</span></span>
-<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>  <span class="bu">Connection</span><span class="op">:</span> keep<span class="op">-</span>alive</span>
-<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>  Keep<span class="op">-</span>Alive<span class="op">:</span> timeout<span class="op">=</span><span class="dv">60</span></span>
-<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a>body<span class="op">:</span>json <span class="op">{</span></span>
-<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
-<span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;transactionDatetime&quot;</span><span class="op">:</span> <span class="st">&quot;2024-12-08T15:15:15.265Z&quot;</span><span class="op">,</span></span>
-<span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;transactionAmount&quot;</span><span class="op">:</span> <span class="dv">146</span><span class="op">,</span></span>
-<span id="cb26-29"><a href="#cb26-29" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;transactionType&quot;</span><span class="op">:</span> <span class="st">&quot;Chip Transaction&quot;</span><span class="op">,</span></span>
-<span id="cb26-30"><a href="#cb26-30" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;merchantId&quot;</span><span class="op">:</span> <span class="st">&quot;-112121233619748226&quot;</span><span class="op">,</span></span>
-<span id="cb26-31"><a href="#cb26-31" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;merchantCity&quot;</span><span class="op">:</span> <span class="st">&quot;Rome&quot;</span><span class="op">,</span></span>
-<span id="cb26-32"><a href="#cb26-32" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;merchantMccCode&quot;</span><span class="op">:</span> <span class="st">&quot;3509&quot;</span><span class="op">,</span></span>
-<span id="cb26-33"><a href="#cb26-33" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cardNumber&quot;</span><span class="op">:</span> <span class="st">&quot;5476407228285230&quot;</span><span class="op">,</span></span>
-<span id="cb26-34"><a href="#cb26-34" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cvvCode&quot;</span><span class="op">:</span> <span class="st">&quot;688&quot;</span><span class="op">,</span></span>
-<span id="cb26-35"><a href="#cb26-35" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cardExpirationDate&quot;</span><span class="op">:</span> <span class="st">&quot;2022-11-01&quot;</span><span class="op">,</span></span>
-<span id="cb26-36"><a href="#cb26-36" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cardHolderFirstName&quot;</span><span class="op">:</span> <span class="st">&quot;Milani&quot;</span><span class="op">,</span></span>
-<span id="cb26-37"><a href="#cb26-37" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cardHolderLastName&quot;</span><span class="op">:</span> <span class="st">&quot;Merkel&quot;</span><span class="op">,</span></span>
-<span id="cb26-38"><a href="#cb26-38" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cardHolderBillingAddress&quot;</span><span class="op">:</span> <span class="st">&quot;Unit 87, 524 Ocean Drive&quot;</span><span class="op">,</span></span>
-<span id="cb26-39"><a href="#cb26-39" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cardHolderBillingCity&quot;</span><span class="op">:</span> <span class="st">&quot;Houston&quot;</span><span class="op">,</span></span>
-<span id="cb26-40"><a href="#cb26-40" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cardHolderBillingState&quot;</span><span class="op">:</span> <span class="st">&quot;TX&quot;</span><span class="op">,</span></span>
-<span id="cb26-41"><a href="#cb26-41" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cardHolderBillingZip&quot;</span><span class="op">:</span> <span class="st">&quot;77056&quot;</span><span class="op">,</span></span>
-<span id="cb26-42"><a href="#cb26-42" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cardHolderBillingCountry&quot;</span><span class="op">:</span> <span class="st">&quot;United States&quot;</span></span>
-<span id="cb26-43"><a href="#cb26-43" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb26-44"><a href="#cb26-44" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb26-45"><a href="#cb26-45" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a># Bruno script code snippet</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>meta <span class="op">{</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  name<span class="op">:</span> Create Success Payment <span class="bu">Request</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  type<span class="op">:</span> http</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>  seq<span class="op">:</span> <span class="dv">2</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>post <span class="op">{</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>  url<span class="op">:</span> http<span class="op">:</span><span class="co">//localhost:8080/payment-request</span></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>  body<span class="op">:</span> json</span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>  auth<span class="op">:</span> none</span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>headers <span class="op">{</span></span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>  Content<span class="op">-</span><span class="bu">Type</span><span class="op">:</span> application<span class="op">/</span>json</span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>  Accept<span class="op">:</span> application<span class="op">/</span>json</span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>  Authorization<span class="op">:</span> Bearer Token <span class="dv">1234567890</span></span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>  X<span class="op">-</span>Api<span class="op">-</span><span class="bu">Key</span><span class="op">:</span> <span class="dv">1234567890</span></span>
+<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a>  X<span class="op">-</span><span class="bu">Notification</span><span class="op">:</span> <span class="kw">true</span></span>
+<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a>  <span class="bu">Connection</span><span class="op">:</span> keep<span class="op">-</span>alive</span>
+<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a>  Keep<span class="op">-</span>Alive<span class="op">:</span> timeout<span class="op">=</span><span class="dv">60</span></span>
+<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a>body<span class="op">:</span>json <span class="op">{</span></span>
+<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;transactionDatetime&quot;</span><span class="op">:</span> <span class="st">&quot;2024-12-08T15:15:15.265Z&quot;</span><span class="op">,</span></span>
+<span id="cb27-28"><a href="#cb27-28" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;transactionAmount&quot;</span><span class="op">:</span> <span class="dv">146</span><span class="op">,</span></span>
+<span id="cb27-29"><a href="#cb27-29" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;transactionType&quot;</span><span class="op">:</span> <span class="st">&quot;Chip Transaction&quot;</span><span class="op">,</span></span>
+<span id="cb27-30"><a href="#cb27-30" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;merchantId&quot;</span><span class="op">:</span> <span class="st">&quot;-112121233619748226&quot;</span><span class="op">,</span></span>
+<span id="cb27-31"><a href="#cb27-31" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;merchantCity&quot;</span><span class="op">:</span> <span class="st">&quot;Rome&quot;</span><span class="op">,</span></span>
+<span id="cb27-32"><a href="#cb27-32" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;merchantMccCode&quot;</span><span class="op">:</span> <span class="st">&quot;3509&quot;</span><span class="op">,</span></span>
+<span id="cb27-33"><a href="#cb27-33" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cardNumber&quot;</span><span class="op">:</span> <span class="st">&quot;5476407228285230&quot;</span><span class="op">,</span></span>
+<span id="cb27-34"><a href="#cb27-34" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cvvCode&quot;</span><span class="op">:</span> <span class="st">&quot;688&quot;</span><span class="op">,</span></span>
+<span id="cb27-35"><a href="#cb27-35" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cardExpirationDate&quot;</span><span class="op">:</span> <span class="st">&quot;2022-11-01&quot;</span><span class="op">,</span></span>
+<span id="cb27-36"><a href="#cb27-36" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cardHolderFirstName&quot;</span><span class="op">:</span> <span class="st">&quot;Milani&quot;</span><span class="op">,</span></span>
+<span id="cb27-37"><a href="#cb27-37" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cardHolderLastName&quot;</span><span class="op">:</span> <span class="st">&quot;Merkel&quot;</span><span class="op">,</span></span>
+<span id="cb27-38"><a href="#cb27-38" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cardHolderBillingAddress&quot;</span><span class="op">:</span> <span class="st">&quot;Unit 87, 524 Ocean Drive&quot;</span><span class="op">,</span></span>
+<span id="cb27-39"><a href="#cb27-39" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cardHolderBillingCity&quot;</span><span class="op">:</span> <span class="st">&quot;Houston&quot;</span><span class="op">,</span></span>
+<span id="cb27-40"><a href="#cb27-40" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cardHolderBillingState&quot;</span><span class="op">:</span> <span class="st">&quot;TX&quot;</span><span class="op">,</span></span>
+<span id="cb27-41"><a href="#cb27-41" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cardHolderBillingZip&quot;</span><span class="op">:</span> <span class="st">&quot;77056&quot;</span><span class="op">,</span></span>
+<span id="cb27-42"><a href="#cb27-42" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cardHolderBillingCountry&quot;</span><span class="op">:</span> <span class="st">&quot;United States&quot;</span></span>
+<span id="cb27-43"><a href="#cb27-43" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb27-44"><a href="#cb27-44" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb27-45"><a href="#cb27-45" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h4 id="logging">Logging</h4>
+<p>For this project robust and structured logging framework is used
+which is a part of Spring Boot and uses the SLF4J with Logback as its
+default implementation. The application has seamless integration of
+different components that permit visibility in the application
+activities which include handling messages, processing payment requests
+and fraud detection. The logger is employed to monitor events such as
+the persistence of the transaction data, fraud detection result values
+from querying the ONNX model, and the status of notifications that were
+sent to users. The interactions at the debug level such as saving of
+transactions and the states of operations are captured while error-level
+loggers oversee the exceptions raised to ensure prompt diagnosis of
+issues. All the logs and configurations are stored in a central
+configuration to allow for easy changing of log levels, and output
+formats of either file-based or console to cater for various deployment
+environments. Such an approach aids in effective debugging while still
+in the development mode or provides useful detailed information for
+monitoring while in production.</p>
+<p>Here is the default logging setting in this SpringBoot sub-project.
+These setting can be override using environment variable if necessary.
+In this application, logger was not used everywhere is the application.
+It was just used to troubleshoot API troubleshooting.</p>
+<div class="sourceCode" id="cb28"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a># src<span class="op">/</span>main<span class="op">/</span>resources<span class="op">/</span>application<span class="op">-</span>dev<span class="op">.</span><span class="fu">yml</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="kw">...</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>logging<span class="op">:</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  level<span class="op">:</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    root<span class="op">:</span> DEBUG</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>    cp630oc<span class="op">.</span><span class="fu">paymentsolution</span><span class="op">:</span> DEBUG</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>    org<span class="op">.</span><span class="fu">springframework</span><span class="op">:</span> INFO</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>    org<span class="op">.</span><span class="fu">hibernate</span><span class="op">:</span> ERROR</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>    com<span class="op">.</span><span class="fu">zaxxer</span><span class="op">.</span><span class="fu">hikari</span><span class="op">:</span> ERROR</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>    org<span class="op">.</span><span class="fu">postgresql</span><span class="op">:</span> ERROR</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>    org<span class="op">.</span><span class="fu">apache</span><span class="op">.</span><span class="fu">catalina</span><span class="op">.</span><span class="fu">core</span><span class="op">.</span><span class="fu">AprLifecycleListener</span><span class="op">:</span> ERROR</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>    org<span class="op">.</span><span class="fu">apache</span><span class="op">.</span><span class="fu">tomcat</span><span class="op">.</span><span class="fu">util</span><span class="op">.</span><span class="fu">compat</span><span class="op">.</span><span class="fu">Jre18Compat</span><span class="op">:</span> ERROR</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>    org<span class="op">.</span><span class="fu">apache</span><span class="op">.</span><span class="fu">tomcat</span><span class="op">.</span><span class="fu">util</span><span class="op">.</span><span class="fu">compat</span><span class="op">.</span><span class="fu">Jre19Compat</span><span class="op">:</span> ERROR</span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>    org<span class="op">.</span><span class="fu">apache</span><span class="op">.</span><span class="fu">tomcat</span><span class="op">.</span><span class="fu">util</span><span class="op">.</span><span class="fu">compat</span><span class="op">.</span><span class="fu">Jre21Compat</span><span class="op">:</span> ERROR</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>    org<span class="op">.</span><span class="fu">apache</span><span class="op">.</span><span class="fu">tomcat</span><span class="op">.</span><span class="fu">util</span><span class="op">.</span><span class="fu">compat</span><span class="op">.</span><span class="fu">Jre22Compat</span><span class="op">:</span> ERROR</span></code></pre></div>
 <h4 id="javadoc">Javadoc</h4>
 <p>After running “gradle clean build”, javadoc task will generate all
 javadoc under
