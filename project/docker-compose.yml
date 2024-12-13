@@ -60,11 +60,6 @@ services:
       POSTGRES_SCHEMA: "public"
       MODEL_PATH: "/app/model/lightgbm_fraud_detector.onnx"
       ENCODING_MAPPING_DIR: "/app/model"
-    # volumes:
-    #   - type: bind
-    #     source: ./model
-    #     target: /app/model
-    #     read_only: true
     depends_on:
       - db
   mageai:
