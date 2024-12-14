@@ -31,6 +31,7 @@ import cp630oc.paymentsolution.paymentrequeststore.entity.TransactionState;
 import cp630oc.paymentsolution.paymentrequeststore.entity.TransactionStateId;
 
 import cp630oc.paymentsolution.modelinferenceservice.ModelInferenceService;
+import cp630oc.paymentsolution.paymentnotificationservice.NotificationService;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -84,6 +85,9 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
     
     @Autowired
     private TransactionStateRepository transactionStateRepository;
+
+    @Autowired
+    private NotificationService notificationService;
 
 
     /**
@@ -528,6 +532,20 @@ public class PaymentRequestRESTController implements PaymentRequestApi, PaymentR
             }
             transactionStateRepository.flush();
             logger.debug("[{}] New transaction state saved: {}", TAG, savedTransactionState.getId().getState());
+
+            Transaction transaction = transactionRepository.findById(savedTransactionState.getId().getId()).get();
+            if (transaction == null) {
+                logger.debug("[{}] Transaction not found", TAG);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            Card card = transaction.getCard();
+
+            notificationEnabled = xNotification.isPresent() && xNotification.get().equals("true");
+            if (notificationEnabled) {
+                logger.debug("[{}] Sending notification ...", TAG);
+                notificationService.sendNotification(card, transaction);
+            }
 
             // Create response
             logger.debug("[{}] Creating response for Updating payment request status by id ...", TAG);

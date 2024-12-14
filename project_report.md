@@ -1880,7 +1880,7 @@ After running "gradle clean build", javadoc task will generate all javadoc under
 
  
 
-Complete? (Yes/No) 
+Complete? (Yes/No) Yes
 
 If Yes, briefly describe: 
 
@@ -1888,7 +1888,9 @@ If Yes, briefly describe:
 2. what are the new features. 
 3. Take some screen to demonstrate the features if applicable. 
 
+To begin with, I had a different idea in mind in the sense that I would have covered the entire project concept and how to go about it from the start until the end in detail. With that said, the length exceeded the minimum required 30 minutes set by the guidelines of this video. Consequently, I can only shorten the video and primarily concentrate on the user interface alongside the API demonstration.
 
+Along with the video, the presentation slides can also be found in the project demonstration folder. Furthermore, a additional final project report has been created and it is in a sense of more well-organized. Overall, these additional resources should assist to gain a better overview of the entire project delivery.
 
 
 

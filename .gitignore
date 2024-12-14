@@ -43,3 +43,5 @@ project/mlops-pipeline/data/feature_importance.parquet
 project/mlops-pipeline/data/scaled_transactions.parquet
 project/mlops-pipeline/data/transactions.parquet
 project/mlops-pipeline/data/winsorized_transactions.parquet
+project/data-processing/.ssh_tunnel
+metadata.yaml
