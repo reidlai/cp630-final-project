@@ -1,5 +1,5 @@
 Title: Credit Card Fraud Detection
-Team: Wai Kei LAI
+Team: Reid LAI
 WorkID: cp630oc-project
 Statement: We claim that the enclosed project submission is our team work.  
 
